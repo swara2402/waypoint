@@ -2005,6 +2005,7 @@ function closeNav() {
 
 function init() {
   wireGlobal();
+  initTheme();
   initSettings();
   initInvestigate();
   $("#overview-demo")?.addEventListener("click", openDemoInvestigation);
@@ -2027,6 +2028,31 @@ function init() {
 
 document.addEventListener("DOMContentLoaded", init);
 
+
+/* ---------- Theme ---------- */
+function initTheme() {
+  const btn = $("#btn-theme");
+  const saved = localStorage.getItem("waypoint_theme");
+  const theme = saved === "light" ? "light" : "dark";
+  document.body.dataset.theme = theme;
+
+  const render = () => {
+    const light = document.body.dataset.theme === "light";
+    if (btn) {
+      btn.innerHTML = `<svg class="ic"><use href="#${light ? "i-moon" : "i-sun"}"/></svg>`;
+      btn.title = light ? "Switch to dark mode" : "Switch to light mode";
+      btn.setAttribute("aria-label", btn.title);
+    }
+  };
+
+  render();
+  btn?.addEventListener("click", () => {
+    const next = document.body.dataset.theme === "light" ? "dark" : "light";
+    document.body.dataset.theme = next;
+    localStorage.setItem("waypoint_theme", next);
+    render();
+  });
+}
 
 /* ---------- Settings / API Key ---------- */
 function initSettings() {
