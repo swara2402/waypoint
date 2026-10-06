@@ -39,22 +39,38 @@ SESSION_HOURS = settings.session_hours
 # Token revocation
 # --------------------------------------------------------------------------
 # JWTs are self-contained and therefore valid until ``exp``. A denylist keyed on
-# the token's ``jti`` makes logout and forced revocation effective. Entries are
-# kept only until the underlying token would have expired anyway, so the store
-# is bounded by the number of live sessions rather than growing forever.
+# the token's ``jti`` makes logout and forced revocation effective. Production
+# uses Redis so every API replica observes the same revocation state. Local/test
+# environments retain an in-memory fallback to avoid requiring infrastructure.
 _REVOKED: dict[str, float] = {}
+_REDIS_REVOCATION_CLIENT = None
+_REDIS_REVOCATION_PREFIX = "waypoint:revoked:"
 
+async def _revocation_redis():
+    global _REDIS_REVOCATION_CLIENT
+    if _REDIS_REVOCATION_CLIENT is None and settings.redis_url:
+        import redis.asyncio as aioredis
+        _REDIS_REVOCATION_CLIENT = aioredis.from_url(
+            settings.redis_url, encoding="utf-8", decode_responses=True
+        )
+    return _REDIS_REVOCATION_CLIENT
 
-def revoke_jti(jti: str, ttl_seconds: float) -> None:
+async def revoke_jti(jti: str, ttl_seconds: float) -> None:
     if not jti or ttl_seconds <= 0:
+        return
+    client = await _revocation_redis()
+    if client is not None:
+        await client.set(f"{_REDIS_REVOCATION_PREFIX}{jti}", "1", ex=max(1, int(ttl_seconds)))
         return
     _REVOKED[jti] = time.time() + ttl_seconds
     _prune_revoked()
 
-
-def is_revoked(jti: str) -> bool:
+async def is_revoked(jti: str) -> bool:
     if not jti:
         return False
+    client = await _revocation_redis()
+    if client is not None:
+        return bool(await client.exists(f"{_REDIS_REVOCATION_PREFIX}{jti}"))
     expires_at = _REVOKED.get(jti)
     if expires_at is None:
         return False
@@ -62,7 +78,6 @@ def is_revoked(jti: str) -> bool:
         _REVOKED.pop(jti, None)
         return False
     return True
-
 
 def _prune_revoked() -> None:
     if len(_REVOKED) < 256:
@@ -191,7 +206,7 @@ async def principal_from_request(request: Request) -> Principal:
             "Your PRISM session has expired. Please sign in again.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if is_revoked(claims.get("jti", "")):
+    if await is_revoked(claims.get("jti", "")):
         raise HTTPException(401, "Your PRISM session has been revoked. Please sign in again.")
     user_id = claims.get("sub")
     tenant_id = claims.get("tenant_id")
