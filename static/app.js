@@ -1987,8 +1987,14 @@ function wireGlobal() {
   });
 
   $("#nav-toggle").addEventListener("click", () => {
-    $("#sidebar").classList.toggle("open");
-    $("#nav-backdrop").classList.toggle("open");
+    const sidebar = $("#sidebar");
+    const backdrop = $("#nav-backdrop");
+    const open = !sidebar.classList.contains("open");
+    sidebar.classList.toggle("open", open);
+    backdrop.classList.toggle("open", open);
+    if (window.matchMedia("(max-width: 850px)").matches) {
+      document.body.style.overflow = open ? "hidden" : "";
+    }
   });
   $("#nav-backdrop").addEventListener("click", closeNav);
 
@@ -1996,11 +2002,18 @@ function wireGlobal() {
     const name = routeFromHash();
     if (name !== currentRoute) activateRoute(name);
   });
+
+  window.addEventListener("resize", () => {
+    if (!window.matchMedia("(max-width: 850px)").matches) {
+      closeNav();
+    }
+  }, { passive: true });
 }
 
 function closeNav() {
   $("#sidebar").classList.remove("open");
   $("#nav-backdrop").classList.remove("open");
+  document.body.style.overflow = "";
 }
 
 function init() {
