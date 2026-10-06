@@ -71,7 +71,7 @@ def evaluate(results: list[dict], scenarios: list[dict]) -> dict[str, Any]:
         "evidence_attribution_coverage": round(sum(r["evidence"] for r in successful) / max(1, len(successful)), 4),
         "error_rate": round(sum(r["error"] for r in rows) / total, 4),
         "latency_p50_seconds": round(statistics.median(latencies), 3) if latencies else None,
-        "latency_p95_seconds": round(sorted(latencies)[max(0, int(len(latencies) * 0.95) - 1)], 3) if latencies else None,
+        "latency_p95_seconds": round(sorted(latencies)[max(0, math.ceil(len(latencies) * 0.95) - 1)], 3) if latencies else None,
     }
 
 def main(path: str) -> int:
