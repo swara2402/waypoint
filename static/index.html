@@ -78,14 +78,23 @@
     </div>
 
     <nav class="nav" id="nav" aria-label="Primary">
-      <button class="nav-item active" data-route="overview"><svg class="ic"><use href="#i-overview"/></svg><span>Overview</span></button>
-      <button class="nav-item" data-route="investigate"><svg class="ic"><use href="#i-investigate"/></svg><span>Investigate</span></button>
-      <button class="nav-item" data-route="incidents"><svg class="ic"><use href="#i-incidents"/></svg><span>Incidents</span></button>
-      <button class="nav-item" data-route="memory"><svg class="ic"><use href="#i-memory"/></svg><span>Memory</span></button>
-      <button class="nav-item" data-route="agents"><svg class="ic"><use href="#i-agents"/></svg><span>Agents</span></button>
-      <button class="nav-item" data-route="patterns"><svg class="ic"><use href="#i-patterns"/></svg><span>Patterns</span></button>
-      <button class="nav-item" data-route="predictions"><svg class="ic"><use href="#i-predictions"/></svg><span>Predictions</span></button>
-      <button class="nav-item" data-route="kg"><svg class="ic"><use href="#i-graph"/></svg><span>Knowledge Graph</span></button>
+      <div class="nav-group">
+        <span class="nav-group-label">WORKSPACE</span>
+        <button class="nav-item active" data-route="overview"><svg class="ic"><use href="#i-overview"/></svg><span>Home</span></button>
+        <button class="nav-item" data-route="investigate"><svg class="ic"><use href="#i-investigate"/></svg><span>Investigate</span></button>
+        <button class="nav-item" data-route="incidents"><svg class="ic"><use href="#i-incidents"/></svg><span>Incidents</span></button>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group-label">INTELLIGENCE</span>
+        <button class="nav-item" data-route="memory"><svg class="ic"><use href="#i-memory"/></svg><span>Past incidents</span></button>
+        <button class="nav-item" data-route="patterns"><svg class="ic"><use href="#i-patterns"/></svg><span>Patterns</span></button>
+        <button class="nav-item" data-route="predictions"><svg class="ic"><use href="#i-predictions"/></svg><span>Predictions</span></button>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group-label">ADVANCED</span>
+        <button class="nav-item" data-route="agents"><svg class="ic"><use href="#i-agents"/></svg><span>AI specialists</span></button>
+        <button class="nav-item" data-route="kg"><svg class="ic"><use href="#i-graph"/></svg><span>System map</span></button>
+      </div>
     </nav>
 
     <div class="side-foot" id="side-status">
@@ -123,22 +132,22 @@
       <section class="view active" data-view="overview" id="view-overview">
         <div class="demo-hero ui-hero">
           <div class="ui-hero-copy">
-            <div class="ui-eyebrow"><span class="status-dot ok"></span> INCIDENT COMMAND · LIVE</div>
-            <h2>See the incident. Understand the cause. Act with confidence.</h2>
-            <p>WayPoint brings evidence, specialist agents, causal reasoning and confidence into one investigation workflow.</p>
+            <div class="ui-eyebrow"><span class="status-dot ok"></span> WAYPOINT · INCIDENT INTELLIGENCE</div>
+            <h2>Find the cause. Understand the evidence. Act with confidence.</h2>
+            <p>WayPoint turns logs, metrics and incident context into a clear root-cause investigation.</p>
           </div>
           <div class="demo-actions">
-            <button class="btn btn-primary" id="overview-demo"><svg class="ic"><use href="#i-run"/></svg>Run demo investigation</button>
-            <button class="btn btn-ghost" id="overview-investigate">New investigation</button>
+            <button class="btn btn-primary" id="overview-demo"><svg class="ic"><use href="#i-run"/></svg>Try a demo incident</button>
+            <button class="btn btn-ghost" id="overview-investigate">Start investigation</button>
           </div>
         </div>
 
         <div class="ui-section-intro">
           <div>
-            <span class="sec-label">COMMAND PULSE</span>
-            <h3>What is happening right now</h3>
+            <span class="sec-label">WORKSPACE</span>
+            <h3>What needs your attention</h3>
           </div>
-          <span class="hint">Live operational signals from the current workspace</span>
+          <span class="hint">A simple view of incidents that need action.</span>
         </div>
         <div class="stats-grid ui-command-stats" id="ov-stats"></div>
 
@@ -157,119 +166,65 @@
           <div class="panel ui-intelligence-panel">
             <div class="panel-head">
               <div>
-                <span class="sec-label">Agent reliability</span>
-                <div class="panel-caption">How much to trust each specialist signal</div>
+                <span class="sec-label">WayPoint intelligence</span>
+                <div class="panel-caption">AI specialists help compare evidence and possible causes.</div>
               </div>
-              <button class="link link-sm" data-go="agents">Agents <svg class="ic"><use href="#i-chevron"/></svg></button>
+              <button class="link link-sm" data-go="agents">View specialists <svg class="ic"><use href="#i-chevron"/></svg></button>
             </div>
             <div id="ov-agents" class="skeleton-rows" aria-busy="true"></div>
           </div>
         </div>
 
         <div class="ui-flow-strip" aria-label="WayPoint investigation workflow">
-          <div class="ui-flow-step"><span>01</span><b>Collect</b><small>Logs · metrics · traces</small></div>
+          <div class="ui-flow-step"><span>01</span><b>Understand</b><small>Collect the evidence you have</small></div>
           <div class="ui-flow-line"></div>
-          <div class="ui-flow-step"><span>02</span><b>Reason</b><small>Agents · hypotheses · evidence</small></div>
+          <div class="ui-flow-step"><span>02</span><b>Investigate</b><small>Compare signals and possible causes</small></div>
           <div class="ui-flow-line"></div>
-          <div class="ui-flow-step"><span>03</span><b>Converge</b><small>Consensus · causal graph</small></div>
+          <div class="ui-flow-step"><span>03</span><b>Validate</b><small>Check evidence and confidence</small></div>
           <div class="ui-flow-line"></div>
-          <div class="ui-flow-step"><span>04</span><b>Explain</b><small>Root cause · confidence · action</small></div>
+          <div class="ui-flow-step"><span>04</span><b>Act</b><small>Root cause and recommended action</small></div>
         </div>
       </section>
 
       <!-- ===== INVESTIGATE ===== -->
       <section class="view" data-view="investigate" id="view-investigate">
-        <div id="inv-form-wrap">
-          <div class="demo-callout">
-              <div>
-                <span class="demo-kicker">FAST DEMO</span>
-                <strong>Not sure what to enter?</strong>
-                <span>Load a realistic incident with logs, metrics and traces automatically.</span>
-              </div>
-              <button type="button" class="btn btn-ghost" id="investigate-demo"><svg class="ic"><use href="#i-run"/></svg>Load demo scenario</button>
-            </div>
-          <div class="panel form-panel">
-            <div class="panel-head">
-              <span class="sec-label">New incident</span>
-              <span class="hint">Select a preset scenario or customize fields — hit run to launch.</span>
-            </div>
-            <div class="scenario-presets" id="scenario-presets">
-              <span class="preset-label">SCENARIOS:</span>
-              <button type="button" class="preset-pill" data-preset="memory">🔥 Memory / OOM</button>
-              <button type="button" class="preset-pill" data-preset="db_pool">⏱ DB Pool Exhaustion</button>
-              <button type="button" class="preset-pill" data-preset="gateway_504">🌐 502/504 Spike</button>
-              <button type="button" class="preset-pill" data-preset="cpu_hot">📈 CPU Saturation</button>
-              <button type="button" class="preset-pill" data-preset="cascade">🔄 Cascading Auth</button>
-            </div>
-            <div class="form-grid">
-              <label class="field span-2">
-                <span class="field-label">Title</span>
-                <input id="inv-title" type="text" spellcheck="false" placeholder="e.g. Payments API error rate spike">
-              </label>
-              <label class="field">
-                <span class="field-label">Severity</span>
-                <select id="inv-severity">
-                  <option value="P0">P0 — Critical</option>
-                  <option value="P1">P1 — High</option>
-                  <option value="P2" selected>P2 — Medium</option>
-                  <option value="P3">P3 — Low</option>
-                  <option value="P4">P4 — Info</option>
-                </select>
-              </label>
-              <label class="field">
-                <span class="field-label">Incident type</span>
-                <select id="inv-type">
-                  <option value="error_rate" selected>error_rate</option>
-                  <option value="latency">latency</option>
-                  <option value="availability">availability</option>
-                  <option value="data">data</option>
-                  <option value="security">security</option>
-                </select>
-              </label>
-              <div class="field span-2">
-                <span class="field-label">Affected services</span>
-                <div class="tag-input" id="inv-services"></div>
-              </div>
-              <label class="field span-2">
-                <span class="field-label">Raw logs <span class="field-note">one line per entry</span></span>
-                <textarea id="inv-logs" rows="6" spellcheck="false" placeholder="<TS> ERROR payment-svc: ..."></textarea>
-              </label>
-              <label class="field">
-                <span class="field-label">Metrics <span class="field-note">JSON</span></span>
-                <textarea id="inv-metrics" rows="4" spellcheck="false" placeholder='{ "error_rate": 0.35 }'></textarea>
-              </label>
-              <label class="field">
-                <span class="field-label">Traces <span class="field-note">JSON array</span></span>
-                <textarea id="inv-traces" rows="4" spellcheck="false" placeholder='[ ]'></textarea>
-              </label>
-            </div>
-            <div class="form-actions">
-              <span class="hint">Runs the full agentic pipeline — persists incident, deploys agents, builds causal graph, confidence, consensus, explanation, learning.</span>
-              <button class="btn btn-primary" id="inv-run"><svg class="ic"><use href="#i-run"/></svg>Run investigation</button>
-            </div>
-          </div>
-        </div>
-
-        <div id="inv-run-wrap" class="hidden">
-          <div class="panel run-panel">
-            <div class="run-head">
-              <div>
-                <div class="sec-label">Live investigation</div>
-                <div class="run-title" id="run-title"></div>
-              </div>
-              <div class="run-clock" id="run-clock">00:00</div>
-            </div>
-            <div class="run-body">
-              <ol class="pipeline" id="pipeline"></ol>
-              <div class="log-stream-wrap">
-                <div class="sec-label">Agent output</div>
-                <div class="log-stream mono" id="log-stream"></div>
-              </div>
-            </div>
-          </div>
-          <div id="verdict-wrap" class="hidden"></div>
-        </div>
-      </section>
+  <div id="inv-form-wrap">
+    <div class="ui-page-intro"><span class="sec-label">INVESTIGATION</span><h2>What happened?</h2><p>Give WayPoint the evidence you have. It will compare signals and find the most likely cause.</p></div>
+    <div class="choice-grid">
+      <button type="button" class="choice-card" id="investigate-demo"><span class="choice-icon">⚡</span><span><b>Try a demo incident</b><small>See a realistic production failure from start to finish.</small></span><span class="choice-arrow">→</span></button>
+      <button type="button" class="choice-card" id="investigate-upload"><span class="choice-icon">↑</span><span><b>Add your evidence</b><small>Paste an incident description, logs, metrics or traces.</small></span><span class="choice-arrow">→</span></button>
+    </div>
+    <div class="panel form-panel friendly-form">
+      <div class="panel-head"><div><span class="sec-label">Incident details</span><div class="panel-caption">Start with the basics. Advanced evidence is optional.</div></div></div>
+      <div class="scenario-presets" id="scenario-presets">
+        <span class="preset-label">QUICK START</span>
+        <button type="button" class="preset-pill" data-preset="memory">Memory outage</button>
+        <button type="button" class="preset-pill" data-preset="db_pool">Database connection issue</button>
+        <button type="button" class="preset-pill" data-preset="gateway_504">Gateway timeout</button>
+        <button type="button" class="preset-pill" data-preset="cpu_hot">CPU saturation</button>
+        <button type="button" class="preset-pill" data-preset="cascade">Authentication outage</button>
+      </div>
+      <div class="form-grid">
+        <label class="field span-2"><span class="field-label">What is going wrong?</span><input id="inv-title" type="text" spellcheck="false" placeholder="e.g. Payments are returning 502 errors"></label>
+        <label class="field"><span class="field-label">Severity <span class="field-note">optional</span></span><select id="inv-severity"><option value="P0">Critical</option><option value="P1">High</option><option value="P2" selected>Medium</option><option value="P3">Low</option><option value="P4">Info</option></select></label>
+        <label class="field"><span class="field-label">Incident type</span><select id="inv-type"><option value="error_rate" selected>Error rate</option><option value="latency">Latency</option><option value="availability">Availability</option><option value="data">Data</option><option value="security">Security</option></select></label>
+        <div class="field span-2 advanced-evidence"><span class="field-label">Affected services <span class="field-note">optional</span></span><div class="tag-input" id="inv-services"></div></div>
+        <label class="field span-2 advanced-evidence"><span class="field-label">Logs <span class="field-note">optional · one line per entry</span></span><textarea id="inv-logs" rows="5" spellcheck="false" placeholder="Paste error or log lines here..."></textarea></label>
+        <label class="field advanced-evidence"><span class="field-label">Metrics <span class="field-note">optional JSON</span></span><textarea id="inv-metrics" rows="4" spellcheck="false" placeholder='{ "error_rate": 0.35 }'></textarea></label>
+        <label class="field advanced-evidence"><span class="field-label">Traces <span class="field-note">optional JSON</span></span><textarea id="inv-traces" rows="4" spellcheck="false" placeholder='[ ]'></textarea></label>
+      </div>
+      <button type="button" class="text-toggle" id="advanced-evidence-toggle">+ Add technical evidence</button>
+      <div class="form-actions"><span class="hint">WayPoint will use the information provided and show its reasoning after the investigation.</span><button class="btn btn-primary" id="inv-run"><svg class="ic"><use href="#i-run"/></svg>Investigate</button></div>
+    </div>
+  </div>
+  <div id="inv-run-wrap" class="hidden">
+    <div class="ui-page-intro"><span class="sec-label">LIVE INVESTIGATION</span><h2>WayPoint is investigating</h2><p id="run-title"></p></div>
+    <div class="panel run-panel friendly-run"><div class="run-head"><div><span class="hint">Current progress</span></div><div class="run-clock" id="run-clock">00:00</div></div>
+      <div class="run-body"><ol class="pipeline" id="pipeline"></ol><details class="technical-output"><summary>Show technical output</summary><div class="log-stream mono" id="log-stream"></div></details></div>
+    </div>
+    <div id="verdict-wrap" class="hidden"></div>
+  </div>
+</section>
 
       <!-- ===== INCIDENTS ===== -->
       <section class="view" data-view="incidents" id="view-incidents">
@@ -299,14 +254,14 @@
           <div class="memory-glow"></div>
           <div class="memory-stats">
             <div class="stat-mini"><span class="stat-mini-num mono" id="mem-size">—</span><span class="stat-mini-label">MEMORY HITS</span></div>
-            <div class="stat-mini"><span class="stat-mini-num mono" id="mem-faiss">—</span><span class="stat-mini-label">FAISS INDEX</span></div>
+            <div class="stat-mini"><span class="stat-mini-num mono" id="mem-faiss">—</span><span class="stat-mini-label">MEMORY STATUS</span></div>
           </div>
           <div class="memory-search">
             <svg class="ic"><use href="#i-search"/></svg>
-            <input id="mem-search" type="text" placeholder="Semantic search over incident memory…  e.g. payment timeout" autocomplete="off">
+            <input id="mem-search" type="text" placeholder="Search past incidents… e.g. payment timeout" autocomplete="off">
             <kbd class="kbd">Enter</kbd>
           </div>
-          <p class="memory-sub">Similar past incidents are retrieved by embedding similarity and returned with a match score.</p>
+          <p class="memory-sub">Find incidents WayPoint has seen before and compare what caused them.</p>
         </div>
         <div id="memory-results"></div>
       </section>
@@ -348,8 +303,8 @@
       <section class="view" data-view="predictions" id="view-predictions">
         <div class="toolbar">
           <div class="toolbar-info">
-            <span class="sec-label">Forecast</span>
-            <span class="hint" id="pred-meta">Predictions from historical recurrence + trend analysis.</span>
+            <span class="sec-label">LOOK AHEAD</span>
+            <span class="hint" id="pred-meta">See which failure patterns may deserve attention next.</span>
           </div>
           <button class="btn btn-primary" id="pred-run"><svg class="ic"><use href="#i-run"/></svg>Run predictions</button>
         </div>
@@ -360,8 +315,8 @@
       <section class="view" data-view="kg" id="view-kg">
         <div class="panel">
           <div class="panel-head">
-            <span class="sec-label">Service subgraph</span>
-            <span class="hint">Render the Neo4j neighborhood for one or more services.</span>
+            <span class="sec-label">SYSTEM MAP</span>
+            <span class="hint">Explore how services and dependencies are connected.</span>
           </div>
           <div class="kg-toolbar">
             <div class="tag-input" id="kg-services" style="flex:1"></div>
@@ -387,7 +342,7 @@
         </div>
         <div class="grid-3">
           <div class="panel">
-            <div class="panel-head"><span class="sec-label">Upsert service</span></div>
+            <div class="panel-head"><span class="sec-label">Manage service</span></div>
             <div class="kg-form">
               <input id="kg-svc-name" type="text" placeholder="service name">
               <input id="kg-svc-team" type="text" placeholder="team (optional)">
@@ -396,7 +351,7 @@
             </div>
           </div>
           <div class="panel">
-            <div class="panel-head"><span class="sec-label">Upsert API</span></div>
+            <div class="panel-head"><span class="sec-label">Manage API</span></div>
             <div class="kg-form">
               <input id="kg-api-path" type="text" placeholder="/v1/charge">
               <input id="kg-api-method" type="text" value="GET" placeholder="method">
@@ -405,7 +360,7 @@
             </div>
           </div>
           <div class="panel">
-            <div class="panel-head"><span class="sec-label">Add dependency</span></div>
+            <div class="panel-head"><span class="sec-label">Manage dependency</span></div>
             <div class="kg-form">
               <input id="kg-dep-name" type="text" placeholder="depends-on (from)">
               <input id="kg-dep-target" type="text" placeholder="dependency (to)">
@@ -434,16 +389,16 @@
 <div class="modal-backdrop hidden" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
   <div class="modal panel">
     <div class="panel-head">
-      <span class="sec-label" id="settings-title">Settings</span>
+      <div><span class="sec-label" id="settings-title">Workspace settings</span><div class="panel-caption">Advanced connection settings for technical users</div></div>
       <button class="icon-btn" id="settings-close" aria-label="Close">&times;</button>
     </div>
     <div class="form-grid" style="padding:1rem 1.25rem 1.5rem">
       <label class="field span-2">
-        <span class="field-label">API Key <span class="hint">(X-API-Key header for authenticated endpoints)</span></span>
-        <input id="settings-api-key" type="password" spellcheck="false" placeholder="Paste your API key" autocomplete="off">
+        <span class="field-label">API key <span class="hint">(advanced)</span></span>
+        <input id="settings-api-key" type="password" spellcheck="false" placeholder="Enter an API key only if your workspace requires one" autocomplete="off">
       </label>
       <div class="field span-2" style="display:flex;gap:.75rem;align-items:center">
-        <button class="btn primary" id="settings-save">Save</button>
+        <button class="btn primary" id="settings-save">Save settings</button>
         <button class="btn ghost" id="settings-clear">Clear</button>
         <span class="hint" id="settings-status"></span>
       </div>
