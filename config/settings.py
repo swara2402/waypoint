@@ -85,6 +85,9 @@ class Settings(BaseSettings):
     jwt_secret: str = Field(default="", validation_alias=AliasChoices("WAYPOINT_JWT_SECRET", "PRISM_JWT_SECRET"))
     jwt_secret_min_length: int = 32
     session_hours: int = Field(default=8, validation_alias=AliasChoices("WAYPOINT_SESSION_HOURS", "PRISM_SESSION_HOURS"))
+    bootstrap_email: str = Field(default="", validation_alias=AliasChoices("WAYPOINT_BOOTSTRAP_EMAIL", "PRISM_BOOTSTRAP_EMAIL"))
+    bootstrap_password: str = Field(default="", validation_alias=AliasChoices("WAYPOINT_BOOTSTRAP_PASSWORD", "PRISM_BOOTSTRAP_PASSWORD"))
+    bootstrap_tenant_name: str = Field(default="WayPoint Workspace", validation_alias=AliasChoices("WAYPOINT_BOOTSTRAP_TENANT_NAME", "PRISM_BOOTSTRAP_TENANT_NAME"))
     password_min_length: int = 12
 
     @field_validator("database_url", mode="before")
@@ -142,7 +145,7 @@ class Settings(BaseSettings):
 
     learning_mode: str = Field(default="online", min_length=1)
     learning_require_confirmation: bool = Field(default=True)
-    PRISM_EXPERIMENT_LOGGING: bool = Field(default=False)
+    experiment_logging: bool = Field(default=False, validation_alias=AliasChoices("WAYPOINT_EXPERIMENT_LOGGING", "PRISM_EXPERIMENT_LOGGING"))
 
     consensus_min_voters: int = 2
     consensus_confidence_threshold: float = 0.6
