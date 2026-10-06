@@ -68,6 +68,7 @@ services:
     plan: starter
     region: singapore
     maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
 
 databases:
   - name: waypoint-db
