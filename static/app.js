@@ -218,14 +218,14 @@ function tagInput(container, initial = []) {
    Routing
    ============================================================ */
 const ROUTES = {
-  overview:     { title: "Overview",     sub: "System health at a glance", refresh: true },
-  investigate:  { title: "Investigate",  sub: "File an incident and watch the agentic pipeline investigate it" },
+  overview:     { title: "Home",         sub: "See what needs your attention", refresh: true },
+  investigate:  { title: "Investigate",  sub: "Give WayPoint the evidence and find the likely cause" },
   incidents:    { title: "Incidents",    sub: "Every incident the framework has investigated", refresh: true },
-  memory:       { title: "Memory",       sub: "Semantic search over everything the framework has learned", refresh: true },
-  agents:       { title: "Agents",       sub: "Reliability telemetry per investigation agent", refresh: true },
-  patterns:     { title: "Patterns",     sub: "Self-learning failure signatures awaiting approval", refresh: true },
-  predictions:  { title: "Predictions",  sub: "Forecasts from historical recurrence and trend analysis", refresh: true },
-  kg:           { title: "Knowledge Graph", sub: "Neo4j-backed service topology", refresh: true },
+  memory:       { title: "Past incidents", sub: "Find similar incidents and see how they were resolved", refresh: true },
+  agents:       { title: "AI specialists", sub: "See how WayPoint compares evidence using specialist analysis", refresh: true },
+  patterns:     { title: "Patterns",     sub: "Recurring failure patterns found in confirmed incidents", refresh: true },
+  predictions:  { title: "Predictions",  sub: "See which failure patterns may deserve attention next", refresh: true },
+  kg:           { title: "System map",   sub: "Explore services and their dependencies", refresh: true },
 };
 
 const VIEW_LOADERS = {
@@ -361,13 +361,13 @@ function incidentRow(inc) {
    Investigate
    ============================================================ */
 const PIPELINE = [
-  { label: "Persist incident", sub: "create · postgres" },
-  { label: "Dispatch agents", sub: "orchestrator · dynamic tree" },
-  { label: "Causal graph", sub: "builder · findings" },
-  { label: "Confidence", sub: "propagate ×5" },
-  { label: "Consensus", sub: "quorum · reliability" },
-  { label: "Explanation", sub: "explainability engine" },
-  { label: "Learning", sub: "patterns · memory" },
+  { label: "Understand", sub: "Collect the incident evidence" },
+  { label: "Investigate", sub: "Compare signals and possible causes" },
+  { label: "Validate", sub: "Check evidence and confidence" },
+  { label: "Converge", sub: "Combine independent findings" },
+  { label: "Explain", sub: "Build the root-cause explanation" },
+  { label: "Recommend", sub: "Prepare the next action" },
+  { label: "Learn", sub: "Remember confirmed patterns" },
 ];
 
 const PRESETS = {
@@ -484,6 +484,19 @@ function openDemoInvestigation() {
   }, 50);
 }
 
+function initFriendlyEvidenceToggle() {
+  const toggle = $("#advanced-evidence-toggle");
+  if (!toggle) return;
+  const fields = $$(".advanced-evidence");
+  let open = false;
+  const sync = () => {
+    fields.forEach((el) => el.classList.toggle("friendly-hidden", !open));
+    toggle.textContent = open ? "− Hide technical evidence" : "+ Add technical evidence";
+  };
+  toggle.addEventListener("click", () => { open = !open; sync(); });
+  sync();
+}
+
 function initInvestigate() {
   const svcEl = $("#inv-services");
   invServices = tagInput(svcEl, ["auth-svc", "gateway", "user-db"]);
@@ -493,11 +506,17 @@ function initInvestigate() {
   });
 
   applyPreset("memory");
+  initFriendlyEvidenceToggle();
 
   $("#inv-run").addEventListener("click", runInvestigation);
   $("#investigate-demo")?.addEventListener("click", () => {
     applyPreset("db_pool");
     toast("Demo scenario loaded with logs, metrics and traces.", { type: "success", title: "Ready to run" });
+  });
+  $("#investigate-upload")?.addEventListener("click", () => {
+    $("#inv-title")?.focus();
+    $("#advanced-evidence-toggle")?.click();
+    toast("Start with a short description. Technical evidence can be added below.", { type: "info", title: "Add evidence" });
   });
 }
 
@@ -875,7 +894,7 @@ function renderVerdict(res) {
     <div class="verdict">
       <div class="verdict-head">
         <div>
-          <span class="verdict-status">Investigation complete</span>
+          <span class="verdict-status">ROOT CAUSE IDENTIFIED</span>
           <div class="verdict-title">${esc(res.root_cause?.root_cause || "Root cause determined")}</div>
         </div>
         <div style="text-align:right; display:flex; flex-direction:column; gap:8px; align-items:flex-end">
@@ -894,7 +913,7 @@ function renderVerdict(res) {
       <div class="verdict-overview-grid">
         <div class="root-cause-box">
           <div class="root-cause-text">
-            <div class="rc-label">Primary root cause</div>
+            <div class="rc-label">Most likely cause</div>
             <div class="rc-value">${esc(rc.root_cause || "—")}</div>
           </div>
           <div class="root-cause-meter">${confMeter}</div>
@@ -902,23 +921,24 @@ function renderVerdict(res) {
         <div class="verdict-signal-card">
           <span class="rc-label">Investigation signal</span>
           <strong>${agents.length || agentStatuses.length}</strong>
-          <span>agents used</span>
+          <span>specialists compared the evidence</span>
           <div class="signal-foot">${agentStatuses.filter((a) => a.status === "ok").length} healthy · ${agentStatuses.filter((a) => a.status === "failed").length} degraded</div>
         </div>
       </div>
 
       <div class="drawer-section verdict-section">
-        <div class="section-heading-row"><span class="sec-label">Causal path</span><span class="hint">How evidence converged</span></div>
+        <div class="section-heading-row"><span class="sec-label">Why WayPoint believes this</span><span class="hint">How the evidence converged</span></div>
         ${chainHtml}
       </div>
 
+      <div class="friendly-action-card"><div><span class="rc-label">RECOMMENDED ACTION</span><p>Review the evidence below, then confirm the suggested remediation.</p></div></div>
       <div class="drawer-section verdict-section">
-        <div class="section-heading-row"><span class="sec-label">Evidence used</span><span class="hint">${evidence.length} structured item${evidence.length === 1 ? "" : "s"}</span></div>
+        <div class="section-heading-row"><span class="sec-label">Supporting evidence</span><span class="hint">${evidence.length} structured item${evidence.length === 1 ? "" : "s"}</span></div>
         ${evidenceHtml}
       </div>
 
       <div class="drawer-section">
-        <span class="sec-label">Alternative hypotheses</span>
+        <span class="sec-label">Other possible causes</span>
         ${altsHtml}
       </div>
 
@@ -928,17 +948,17 @@ function renderVerdict(res) {
       </div>` : ""}
 
       <div class="drawer-section">
-        <span class="sec-label">Explanation</span>
+        <span class="sec-label">What happened</span>
         <div class="explanation-text">${esc(finalExplanation)}</div>
       </div>
 
       <div class="drawer-section verdict-section">
-        <div class="section-heading-row"><span class="sec-label">Agent analysis</span><span class="hint">Execution status and latency</span></div>
+        <div class="section-heading-row"><span class="sec-label">Technical analysis</span><span class="hint">Optional specialist details</span></div>
         ${agentStatusHtml}
       </div>
 
       <div class="drawer-section verdict-section">
-        <div class="section-heading-row"><span class="sec-label">Operational suggestions</span><span class="hint">Advisory only</span></div>
+        <div class="section-heading-row"><span class="sec-label">Recommended next steps</span><span class="hint">Review before taking action</span></div>
         ${suggestionsHtml}
       </div>
 
@@ -2021,7 +2041,7 @@ function initSettings() {
 
   const open = () => {
     input.value = getApiKey();
-    status.textContent = getApiKey() ? "Key is set (stored locally)" : "No key set";
+    status.textContent = getApiKey() ? "Advanced API access is configured." : "No advanced API key configured.";
     modal.classList.remove("hidden");
   };
   const close = () => modal.classList.add("hidden");
