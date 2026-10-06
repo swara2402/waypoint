@@ -7,8 +7,8 @@ import uuid
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-BASE_URL = os.environ.get("PRISM_EVAL_BASE_URL", "http://localhost:8000").rstrip("/")
-API_KEY = os.environ.get("PRISM_EVAL_API_KEY", "")
+BASE_URL = os.environ.get("WAYPOINT_EVAL_BASE_URL", os.environ.get("PRISM_EVAL_BASE_URL", "http://localhost:8000")).rstrip("/")
+API_KEY = os.environ.get("WAYPOINT_EVAL_API_KEY", os.environ.get("PRISM_EVAL_API_KEY", ""))
 SCENARIOS = Path(__file__).with_name("scenarios.json")
 
 
