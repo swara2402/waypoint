@@ -591,7 +591,7 @@ async function startPipeline(payload) {
   };
 
   setStep(0);
-  log("→ POST /incidents/investigate/stream · SSE connected", "ls-acc");
+  log("Live investigation connected. WayPoint is following the evidence…", "ls-acc");
 
   try {
     const key = getApiKey();
@@ -641,19 +641,19 @@ async function startPipeline(payload) {
 
           switch (currentEvent) {
             case "heartbeat":
-              log("pipeline still running · " + (data.elapsed_seconds || 0) + "s", "ls-dim");
+              log("Still investigating · " + (data.elapsed_seconds || 0) + "s", "ls-dim");
               break;
             case "pipeline_started":
               setStep(0);
-              log(`pipeline started · request_id=${data.request_id || "ok"}`);
+              log("Investigation started. Comparing signals now…");
               break;
             case "incident_persisted":
               setStep(1);
-              log(`incident persisted · id=${data.incident_id?.slice(0, 10)}… · sev=${data.severity}`, "ls-ok");
+              log(`Incident captured · severity ${data.severity || "—"}`, "ls-ok");
               break;
             case "agents_dispatched":
               setStep(1);
-              log(`dispatching agents for ${data.incident_type} incident`, "ls-acc");
+              log(`Specialists are comparing evidence for this ${data.incident_type || "incident"}…`, "ls-acc");
               break;
             case "agent_completed":
               setStep(1);
@@ -662,24 +662,24 @@ async function startPipeline(payload) {
               break;
             case "causal_graph_built":
               setStep(2);
-              log(`causal graph constructed · nodes=${data.nodes_count} · edges=${data.edges_count}`, "ls-acc");
+              log("Evidence relationships mapped. Checking what connects…", "ls-acc");
               break;
             case "confidence_propagated":
               setStep(3);
-              log(`confidence propagated (x${data.iterations}) · candidates=${data.candidate_count}`, "ls-ok");
+              log("Comparing the strongest possible causes…", "ls-ok");
               if (data.top_candidate) log(`  ↳ top candidate: ${data.top_candidate}`, "ls-dim");
               break;
             case "consensus_reached":
               setStep(4);
-              log(`consensus root cause: "${data.root_cause}" · conf=${pct(data.confidence)}%`, "ls-acc");
+              log(`The strongest cause is emerging: "${data.root_cause || "candidate cause"}"`, "ls-acc");
               break;
             case "explanation_built":
               setStep(5);
-              log(`explanation assembled from causal graph + voters`, "ls-ok");
+              log("Building a clear explanation from the evidence…", "ls-ok");
               break;
             case "learning_recorded":
               setStep(6);
-              log(`failure pattern extracted & memory indexed`, "ls-warn");
+              log("Saving the useful pattern for future incidents…", "ls-warn");
               break;
             case "verdict":
               verdictResult = data;
@@ -712,8 +712,8 @@ function finishPipeline(res) {
   steps.forEach((el) => el.classList.add("done"));
   const s = Math.floor(res.duration_seconds || 0);
   $("#run-clock").textContent = `0${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-  logStreamLine("✓ investigation complete", "ls-ok");
-  logStreamLine(`pipeline returned in ${Number(res.duration_seconds).toFixed(1)}s · ${res.agents_used?.length || 0} agents used`, "ls-acc");
+  logStreamLine("✓ Root cause investigation complete", "ls-ok");
+  logStreamLine(`Completed in ${Number(res.duration_seconds).toFixed(1)}s · ${res.agents_used?.length || 0} specialists compared the evidence`, "ls-acc");
   $("#verdict-wrap").classList.remove("hidden");
   $("#verdict-wrap").innerHTML = renderVerdict(res);
   setupCausalGraph($("#verdict-wrap"), (res.root_cause?.causal_chain || []));
@@ -1935,7 +1935,7 @@ async function pollStatus() {
     ]);
     if (health.status === "fulfilled") {
       dot.className = "status-dot ok";
-      label.textContent = "ONLINE";
+      label.textContent = "LIVE";
       dot.title = "API reachable";
     } else {
       dot.className = "status-dot err";
@@ -2005,6 +2005,7 @@ function closeNav() {
 
 function init() {
   wireGlobal();
+  initTheme();
   initSettings();
   initInvestigate();
   $("#overview-demo")?.addEventListener("click", openDemoInvestigation);
@@ -2027,6 +2028,31 @@ function init() {
 
 document.addEventListener("DOMContentLoaded", init);
 
+
+/* ---------- Theme ---------- */
+function initTheme() {
+  const btn = $("#btn-theme");
+  const saved = localStorage.getItem("waypoint_theme");
+  const theme = saved === "light" ? "light" : "dark";
+  document.body.dataset.theme = theme;
+
+  const render = () => {
+    const light = document.body.dataset.theme === "light";
+    if (btn) {
+      btn.innerHTML = `<svg class="ic"><use href="#${light ? "i-moon" : "i-sun"}"/></svg>`;
+      btn.title = light ? "Switch to dark mode" : "Switch to light mode";
+      btn.setAttribute("aria-label", btn.title);
+    }
+  };
+
+  render();
+  btn?.addEventListener("click", () => {
+    const next = document.body.dataset.theme === "light" ? "dark" : "light";
+    document.body.dataset.theme = next;
+    localStorage.setItem("waypoint_theme", next);
+    render();
+  });
+}
 
 /* ---------- Settings / API Key ---------- */
 function initSettings() {
