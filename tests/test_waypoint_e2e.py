@@ -15,12 +15,16 @@ def test_checkout_latency_end_to_end():
     from main import app
 
     with TestClient(app) as client:
-        login = client.post(
-            "/auth/login",
-            json={"email": "owner@waypoint.test", "password": "Waypoint-test-password-2026!"},
+        register = client.post(
+            "/auth/register",
+            json={
+                "email": "owner@waypoint.test",
+                "password": "Waypoint-test-password-2026!",
+                "workspace_name": "WayPoint Checkout Test",
+            },
         )
-        assert login.status_code == 200, login.text
-        assert login.cookies.get("prism_session")
+        assert register.status_code == 201, register.text
+        assert register.cookies.get("waypoint_session")
 
         payload = {
             "title": "Checkout API latency increased after deployment",
