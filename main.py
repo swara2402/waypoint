@@ -25,7 +25,7 @@ from api.patterns import router as patterns_router
 from api.predictions import router as predictions_router
 from api.service import router as service_router
 from api.connectors import router as connectors_router
-from auth.security import COOKIE_NAME, bootstrap_owner, decode_access_token
+from auth.security import COOKIE_NAME, LEGACY_COOKIE_NAME, bootstrap_owner, decode_access_token
 from config.logging import configure_logging, get_logger
 from config.settings import settings, WAYPOINT_VERSION
 from database.session import close_db, init_db
@@ -84,7 +84,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # client-selected routing value. Rewrite the header before FastAPI
         # resolves route parameters so legacy endpoints that still declare
         # X-Tenant-Id cannot be tricked into reading another workspace.
-        token = request.cookies.get(COOKIE_NAME)
+        token = request.cookies.get(COOKIE_NAME) or request.cookies.get(LEGACY_COOKIE_NAME)
         if not token:
             auth = request.headers.get("Authorization", "")
             if auth.lower().startswith("bearer "):
@@ -210,7 +210,7 @@ async def login_page() -> FileResponse:
 
 @app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False, name="ui")
 async def ui_root(request: Request):
-    if not request.cookies.get(COOKIE_NAME):
+    if not (request.cookies.get(COOKIE_NAME) or request.cookies.get(LEGACY_COOKIE_NAME)):
         return RedirectResponse("/login", status_code=303)
     return FileResponse(STATIC_DIR / "index.html")
 
