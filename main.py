@@ -160,7 +160,7 @@ async def internal_health(
     return {
         "status": "ok",
         "env": settings.app_env,
-        "version": "2.0.0",
+        "version": WAYPOINT_VERSION,
         "service": "WayPoint",
         "memory_scope": "tenant-bound-lazy",
         "memory_size": memory_store.size(),
