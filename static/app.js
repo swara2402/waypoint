@@ -889,7 +889,7 @@ function renderVerdict(res) {
     <div class="verdict">
       <div class="verdict-head">
         <div>
-          <span class="verdict-status">Investigation complete</span>
+          <span class="verdict-status">ROOT CAUSE IDENTIFIED</span>
           <div class="verdict-title">${esc(res.root_cause?.root_cause || "Root cause determined")}</div>
         </div>
         <div style="text-align:right; display:flex; flex-direction:column; gap:8px; align-items:flex-end">
@@ -908,7 +908,7 @@ function renderVerdict(res) {
       <div class="verdict-overview-grid">
         <div class="root-cause-box">
           <div class="root-cause-text">
-            <div class="rc-label">Primary root cause</div>
+            <div class="rc-label">Most likely cause</div>
             <div class="rc-value">${esc(rc.root_cause || "—")}</div>
           </div>
           <div class="root-cause-meter">${confMeter}</div>
@@ -916,23 +916,24 @@ function renderVerdict(res) {
         <div class="verdict-signal-card">
           <span class="rc-label">Investigation signal</span>
           <strong>${agents.length || agentStatuses.length}</strong>
-          <span>agents used</span>
+          <span>specialists compared the evidence</span>
           <div class="signal-foot">${agentStatuses.filter((a) => a.status === "ok").length} healthy · ${agentStatuses.filter((a) => a.status === "failed").length} degraded</div>
         </div>
       </div>
 
       <div class="drawer-section verdict-section">
-        <div class="section-heading-row"><span class="sec-label">Causal path</span><span class="hint">How evidence converged</span></div>
+        <div class="section-heading-row"><span class="sec-label">Why WayPoint believes this</span><span class="hint">How the evidence converged</span></div>
         ${chainHtml}
       </div>
 
+      <div class="friendly-action-card"><div><span class="rc-label">RECOMMENDED ACTION</span><p>Review the evidence below, then confirm the suggested remediation.</p></div></div>
       <div class="drawer-section verdict-section">
-        <div class="section-heading-row"><span class="sec-label">Evidence used</span><span class="hint">${evidence.length} structured item${evidence.length === 1 ? "" : "s"}</span></div>
+        <div class="section-heading-row"><span class="sec-label">Supporting evidence</span><span class="hint">${evidence.length} structured item${evidence.length === 1 ? "" : "s"}</span></div>
         ${evidenceHtml}
       </div>
 
       <div class="drawer-section">
-        <span class="sec-label">Alternative hypotheses</span>
+        <span class="sec-label">Other possible causes</span>
         ${altsHtml}
       </div>
 
@@ -942,17 +943,17 @@ function renderVerdict(res) {
       </div>` : ""}
 
       <div class="drawer-section">
-        <span class="sec-label">Explanation</span>
+        <span class="sec-label">What happened</span>
         <div class="explanation-text">${esc(finalExplanation)}</div>
       </div>
 
       <div class="drawer-section verdict-section">
-        <div class="section-heading-row"><span class="sec-label">Agent analysis</span><span class="hint">Execution status and latency</span></div>
+        <div class="section-heading-row"><span class="sec-label">Technical analysis</span><span class="hint">Optional specialist details</span></div>
         ${agentStatusHtml}
       </div>
 
       <div class="drawer-section verdict-section">
-        <div class="section-heading-row"><span class="sec-label">Operational suggestions</span><span class="hint">Advisory only</span></div>
+        <div class="section-heading-row"><span class="sec-label">Recommended next steps</span><span class="hint">Review before taking action</span></div>
         ${suggestionsHtml}
       </div>
 
