@@ -2051,7 +2051,7 @@ function initSettings() {
   modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
   saveBtn?.addEventListener("click", () => {
     setApiKey(input.value.trim());
-    status.textContent = "Save settingsd";
+    status.textContent = "Saved";
     toast("API key saved locally", { type: "success", title: "Settings" });
     setTimeout(close, 600);
   });
