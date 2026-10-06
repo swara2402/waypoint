@@ -14,6 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from api.deps import require_tenant
 from auth.security import (
     COOKIE_NAME,
+    LEGACY_COOKIE_NAME,
     SESSION_HOURS,
     authenticate_login,
     create_access_token,
@@ -238,7 +239,7 @@ async def logout(request: Request, response: Response) -> dict:
 
     Deleting the cookie alone left the JWT valid for its remaining lifetime.
     """
-    token = request.cookies.get(COOKIE_NAME)
+    token = request.cookies.get(COOKIE_NAME) or request.cookies.get(LEGACY_COOKIE_NAME)
     if not token:
         auth = request.headers.get("Authorization", "")
         if auth.lower().startswith("bearer "):
@@ -254,6 +255,7 @@ async def logout(request: Request, response: Response) -> dict:
         except Exception:  # noqa: BLE001 - a malformed token is already unusable
             pass
     response.delete_cookie(COOKIE_NAME, path="/")
+    response.delete_cookie(LEGACY_COOKIE_NAME, path="/")
     return {"logged_out": True}
 
 
@@ -356,7 +358,7 @@ async def create_service_account(
         ).scalars().all()
         if len(existing) >= settings.max_service_accounts_per_tenant:
             raise HTTPException(409, "Service account limit reached for this workspace")
-        token = "prism_sa_" + secrets.token_urlsafe(32)
+        token = "waypoint_sa_" + secrets.token_urlsafe(32)
         expires_at = (
             datetime.now(timezone.utc) + timedelta(days=body.expires_in_days)
             if body.expires_in_days
