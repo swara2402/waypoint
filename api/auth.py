@@ -248,7 +248,7 @@ async def logout(request: Request, response: Response) -> dict:
             claims = decode_access_token(token)
             exp = claims.get("exp")
             if exp:
-                revoke_jti(
+                await revoke_jti(
                     claims.get("jti", ""), ttl_seconds=float(exp) - datetime.now(timezone.utc).timestamp()
                 )
         except Exception:  # noqa: BLE001 - a malformed token is already unusable
