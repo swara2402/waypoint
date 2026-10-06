@@ -35,7 +35,15 @@ def main() -> int:
             print(f"{scenario['id']}: failed ({type(exc).__name__})")
     output = Path("eval-results.json")
     output.write_text(json.dumps(results, indent=2, default=str))
+
+    from evaluate import evaluate
+    scenarios_data = json.loads(SCENARIOS.read_text())
+    metrics = evaluate(results, scenarios_data)
+    metrics_path = Path("eval-metrics.json")
+    metrics_path.write_text(json.dumps(metrics, indent=2))
     print(f"Wrote {output}")
+    print(f"Wrote {metrics_path}")
+    print(json.dumps(metrics, indent=2))
     return 0 if all("response" in item for item in results) else 1
 
 
