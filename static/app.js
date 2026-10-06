@@ -513,6 +513,11 @@ function initInvestigate() {
     applyPreset("db_pool");
     toast("Demo scenario loaded with logs, metrics and traces.", { type: "success", title: "Ready to run" });
   });
+  $("#investigate-upload")?.addEventListener("click", () => {
+    $("#inv-title")?.focus();
+    $("#advanced-evidence-toggle")?.click();
+    toast("Start with a short description. Technical evidence can be added below.", { type: "info", title: "Add evidence" });
+  });
 }
 
 async function runInvestigation() {
@@ -2036,7 +2041,7 @@ function initSettings() {
 
   const open = () => {
     input.value = getApiKey();
-    status.textContent = getApiKey() ? "Key is set (stored locally)" : "No key set";
+    status.textContent = getApiKey() ? "Advanced API access is configured." : "No advanced API key configured.";
     modal.classList.remove("hidden");
   };
   const close = () => modal.classList.add("hidden");
@@ -2046,7 +2051,7 @@ function initSettings() {
   modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
   saveBtn?.addEventListener("click", () => {
     setApiKey(input.value.trim());
-    status.textContent = "Saved";
+    status.textContent = "Save settingsd";
     toast("API key saved locally", { type: "success", title: "Settings" });
     setTimeout(close, 600);
   });
