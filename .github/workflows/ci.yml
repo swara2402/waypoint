@@ -18,7 +18,7 @@ env:
   APP_ENV: test
   DATABASE_URL: sqlite+aiosqlite:///./waypoint-ci.db
   DATABASE_SYNC_URL: sqlite:///./waypoint-ci.db
-  PRISM_JWT_SECRET: test-only-jwt-secret-012345678901234567890123
+  WAYPOINT_JWT_SECRET: test-only-jwt-secret-012345678901234567890123
   API_KEY: test-only-api-key
   ENABLE_NEO4J: "false"
   ENABLE_OLLAMA: "false"
