@@ -13,10 +13,11 @@ from pathlib import Path
 from typing import List, Optional
 from urllib.parse import unquote, urlsplit
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+WAYPOINT_VERSION = "2.1.0"
 
 _WEAK_PASSWORDS = {
     "incident_pass", "neo4j_pass", "password", "pass", "secret", "changeme",
@@ -81,9 +82,9 @@ class Settings(BaseSettings):
     # ``os.getenv`` at their point of use: the settings loader reads ``.env``
     # into this object and never mutates ``os.environ``, so a secret supplied
     # only in ``.env`` would otherwise be invisible.
-    jwt_secret: str = Field(default="", alias="PRISM_JWT_SECRET")
+    jwt_secret: str = Field(default="", validation_alias=AliasChoices("WAYPOINT_JWT_SECRET", "PRISM_JWT_SECRET"))
     jwt_secret_min_length: int = 32
-    session_hours: int = 8
+    session_hours: int = Field(default=8, validation_alias=AliasChoices("WAYPOINT_SESSION_HOURS", "PRISM_SESSION_HOURS"))
     password_min_length: int = 12
 
     @field_validator("database_url", mode="before")
@@ -272,6 +273,8 @@ class Settings(BaseSettings):
             errors.append("NEO4J_PASSWORD is weak/default")
         if not self.cors_origins_list:
             errors.append("CORS_ORIGINS must be set to explicit frontend origin(s) in production")
+        if not self.redis_url:
+            errors.append("REDIS_URL is required in non-local environments for shared rate limiting and JWT revocation")
 
         if errors:
             print(
