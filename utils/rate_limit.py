@@ -138,12 +138,12 @@ class RedisRateLimiter:
           return {0, tonumber(ARGV[2])}
         end
         redis.call('ZADD', KEYS[1], ARGV[2], ARGV[4])
-        redis.call('EXPIRE', KEYS[1], math.ceil(tonumber(ARGV[3])) + 1)
+        redis.call('EXPIRE', KEYS[1], math.ceil(tonumber(ARGV[5])) + 1)
         return {1, 0}
         """
         member = f"{now}:{uuid.uuid4().hex}"
         result = await client.eval(
-            script, 1, redis_key, cutoff, now, self.limit, member
+            script, 1, redis_key, cutoff, now, self.limit, member, self.window
         )
         if not bool(int(result[0])):
             retry_after = max(0.0, float(result[1]) + self.window - now)
