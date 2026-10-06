@@ -134,7 +134,7 @@ _distributed_investigation_limiter = (
     RedisConcurrencyLimiter(
         settings.max_concurrent_investigations,
         settings.redis_url,
-        lease_seconds=max(30, int(settings.job_lease_seconds)),
+        lease_seconds=max(1800, int(settings.agent_timeout_seconds * settings.MAX_INVESTIGATION_STEPS + 60)),
     )
     if settings.redis_url else None
 )
