@@ -2500,3 +2500,7 @@ body[data-theme="light"] #btn-settings{color:#536078}
 }
 body[data-theme="light"] .ui-v2 .friendly-run::before{background:linear-gradient(90deg,#315efb,#35a77d,#315efb);background-size:200% 100%}
 body[data-theme="light"] .ui-v2 .pipeline-step.active::after{background:linear-gradient(90deg,transparent,rgba(49,94,251,.10),transparent)}
+
+.ui-v2 .side-status-friendly{margin-top:7px;color:#7f8ba0;font-size:11px;line-height:1.4}
+.ui-v2 .technical-status{opacity:.65;font-size:9px}
+body[data-theme="light"] .ui-v2 .side-status-friendly{color:#718096}
