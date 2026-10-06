@@ -218,14 +218,14 @@ function tagInput(container, initial = []) {
    Routing
    ============================================================ */
 const ROUTES = {
-  overview:     { title: "Overview",     sub: "System health at a glance", refresh: true },
-  investigate:  { title: "Investigate",  sub: "File an incident and watch the agentic pipeline investigate it" },
+  overview:     { title: "Home",         sub: "See what needs your attention", refresh: true },
+  investigate:  { title: "Investigate",  sub: "Give WayPoint the evidence and find the likely cause" },
   incidents:    { title: "Incidents",    sub: "Every incident the framework has investigated", refresh: true },
-  memory:       { title: "Memory",       sub: "Semantic search over everything the framework has learned", refresh: true },
-  agents:       { title: "Agents",       sub: "Reliability telemetry per investigation agent", refresh: true },
-  patterns:     { title: "Patterns",     sub: "Self-learning failure signatures awaiting approval", refresh: true },
-  predictions:  { title: "Predictions",  sub: "Forecasts from historical recurrence and trend analysis", refresh: true },
-  kg:           { title: "Knowledge Graph", sub: "Neo4j-backed service topology", refresh: true },
+  memory:       { title: "Past incidents", sub: "Find similar incidents and see how they were resolved", refresh: true },
+  agents:       { title: "AI specialists", sub: "See how WayPoint compares evidence using specialist analysis", refresh: true },
+  patterns:     { title: "Patterns",     sub: "Recurring failure patterns found in confirmed incidents", refresh: true },
+  predictions:  { title: "Predictions",  sub: "See which failure patterns may deserve attention next", refresh: true },
+  kg:           { title: "System map",   sub: "Explore services and their dependencies", refresh: true },
 };
 
 const VIEW_LOADERS = {
@@ -361,13 +361,13 @@ function incidentRow(inc) {
    Investigate
    ============================================================ */
 const PIPELINE = [
-  { label: "Persist incident", sub: "create · postgres" },
-  { label: "Dispatch agents", sub: "orchestrator · dynamic tree" },
-  { label: "Causal graph", sub: "builder · findings" },
-  { label: "Confidence", sub: "propagate ×5" },
-  { label: "Consensus", sub: "quorum · reliability" },
-  { label: "Explanation", sub: "explainability engine" },
-  { label: "Learning", sub: "patterns · memory" },
+  { label: "Understand", sub: "Collect the incident evidence" },
+  { label: "Investigate", sub: "Compare signals and possible causes" },
+  { label: "Validate", sub: "Check evidence and confidence" },
+  { label: "Converge", sub: "Combine independent findings" },
+  { label: "Explain", sub: "Build the root-cause explanation" },
+  { label: "Recommend", sub: "Prepare the next action" },
+  { label: "Learn", sub: "Remember confirmed patterns" },
 ];
 
 const PRESETS = {
@@ -484,6 +484,19 @@ function openDemoInvestigation() {
   }, 50);
 }
 
+function initFriendlyEvidenceToggle() {
+  const toggle = $("#advanced-evidence-toggle");
+  if (!toggle) return;
+  const fields = $$(".advanced-evidence");
+  let open = false;
+  const sync = () => {
+    fields.forEach((el) => el.classList.toggle("friendly-hidden", !open));
+    toggle.textContent = open ? "− Hide technical evidence" : "+ Add technical evidence";
+  };
+  toggle.addEventListener("click", () => { open = !open; sync(); });
+  sync();
+}
+
 function initInvestigate() {
   const svcEl = $("#inv-services");
   invServices = tagInput(svcEl, ["auth-svc", "gateway", "user-db"]);
@@ -493,6 +506,7 @@ function initInvestigate() {
   });
 
   applyPreset("memory");
+  initFriendlyEvidenceToggle();
 
   $("#inv-run").addEventListener("click", runInvestigation);
   $("#investigate-demo")?.addEventListener("click", () => {
