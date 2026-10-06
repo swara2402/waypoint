@@ -33,6 +33,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import time
+import uuid
 from typing import Any, Dict, List, Optional, Sequence
 from urllib.parse import urlsplit
 
@@ -77,7 +78,7 @@ from models.schemas import (
 )
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
-from utils.rate_limit import build_rate_limiter
+from utils.rate_limit import build_rate_limiter, RedisConcurrencyLimiter
 
 logger = get_logger(__name__)
 
@@ -130,7 +131,15 @@ async def incident_stats(
 
 # Concurrency limiter for expensive investigations
 _investigation_semaphore = asyncio.Semaphore(settings.max_concurrent_investigations)
-_ACQUIRE_TIMEOUT = 5.0  # seconds to wait for a free slot
+_distributed_investigation_limiter = (
+    RedisConcurrencyLimiter(
+        settings.max_concurrent_investigations,
+        settings.redis_url,
+        lease_seconds=max(1800, int(settings.agent_timeout_seconds * settings.MAX_INVESTIGATION_STEPS + 60)),
+    )
+    if settings.redis_url else None
+)
+_ACQUIRE_TIMEOUT = 5.0
 
 # Per-caller request rate limiter (settings.investigation_rate_limit).
 # Redis-backed when settings.redis_url is set (shared across replicas).
@@ -341,31 +350,31 @@ def _rate_limit_key(request: Request, tenant: str, api_key: str) -> str:
     return f"ip:{request.client.host if request.client else 'unknown'}"
 
 
-async def _acquire_investigation_slot(request: Request) -> None:
-    """Take a concurrency slot, or raise 429.
-
-    Called from the route body -- before any response has started -- so an
-    over-capacity request is rejected with a real status code. Acquiring inside
-    a streaming generator instead means the 200 is already committed.
-    """
+async def _acquire_investigation_slot(request: Request) -> str | None:
+    """Take a global Redis slot when configured, else a process-local slot."""
     request_id = getattr(request.state, "request_id", None) or "unknown"
-    try:
-        await asyncio.wait_for(_investigation_semaphore.acquire(), timeout=_ACQUIRE_TIMEOUT)
-    except asyncio.TimeoutError:
-        logger.warning(
-            "investigation_capacity_exceeded",
-            extra={
-                "request_id": request_id,
-                "max_concurrent": settings.max_concurrent_investigations,
-            },
-        )
+    owner = f"{request_id}:{uuid.uuid4().hex}"
+    if _distributed_investigation_limiter is not None:
+        deadline = time.monotonic() + _ACQUIRE_TIMEOUT
+        while time.monotonic() < deadline:
+            slot = await _distributed_investigation_limiter.acquire(owner)
+            if slot:
+                request.state.investigation_slot = (slot, owner)
+                return slot
+            await asyncio.sleep(0.05)
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=(
-                "Too many concurrent investigations "
-                f"(limit={settings.max_concurrent_investigations}). Try again shortly."
-            ),
+            detail=f"Too many concurrent investigations (global limit={settings.max_concurrent_investigations}). Try again shortly.",
         )
+    try:
+        await asyncio.wait_for(_investigation_semaphore.acquire(), timeout=_ACQUIRE_TIMEOUT)
+        return None
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Too many concurrent investigations (limit={settings.max_concurrent_investigations}). Try again shortly.",
+        )
+
 
 
 async def _jobs_to_out(jobs: Sequence[Any], *, tenant_id: str) -> List[JobOut]:
@@ -480,7 +489,11 @@ async def investigate(
             principal_role=role,
         )
     finally:
-        _investigation_semaphore.release()
+        slot_state = getattr(request.state, "investigation_slot", None)
+        if slot_state and _distributed_investigation_limiter is not None:
+            await _distributed_investigation_limiter.release(*slot_state)
+        else:
+            _investigation_semaphore.release()
 
 
 async def _run_investigation(

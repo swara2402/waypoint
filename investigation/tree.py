@@ -287,8 +287,6 @@ async def run_tree(
     from investigation.diagnostic_gain import compute_adg
     from investigation.experiment_logger import log_iteration
 
-    if not hasattr(settings, "PRISM_EXPERIMENT_LOGGING"):
-        settings.PRISM_EXPERIMENT_LOGGING = False
 
     start = _time.perf_counter()
     builder = InvestigationTreeBuilder()

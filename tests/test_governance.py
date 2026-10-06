@@ -49,7 +49,8 @@ def test_health_is_minimal(client):
     body = r.json()
     assert body["status"] == "ok"
     assert body["service"] == "WayPoint"
-    assert body["version"] == "2.0.0"
+    from config.settings import WAYPOINT_VERSION
+    assert body["version"] == WAYPOINT_VERSION
     assert "subsystems" not in body
 
 

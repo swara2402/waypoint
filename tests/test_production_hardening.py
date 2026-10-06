@@ -540,3 +540,23 @@ async def test_redis_rate_limiter_shared_window():
     assert await limiter.check("tenant:globex") == (True, 0.0)
     await limiter.reset()
     assert await limiter.check("tenant:acme") == (True, 0.0)
+
+@pytest.mark.asyncio
+async def test_jwt_revocation_uses_shared_redis():
+    fakeredis = pytest.importorskip("fakeredis.aioredis")
+    import auth.security as security
+
+    client = fakeredis.FakeRedis(decode_responses=True)
+    old_client = security._REDIS_REVOCATION_CLIENT
+    old_url = security.settings.redis_url
+    security._REDIS_REVOCATION_CLIENT = client
+    security.settings.redis_url = "redis://unused"
+    try:
+        await security.revoke_jti("shared-jti", 60)
+        assert await security.is_revoked("shared-jti") is True
+        await client.delete("waypoint:revoked:shared-jti")
+        assert await security.is_revoked("shared-jti") is False
+    finally:
+        security._REDIS_REVOCATION_CLIENT = old_client
+        security.settings.redis_url = old_url
+        await client.aclose()

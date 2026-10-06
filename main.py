@@ -25,9 +25,9 @@ from api.patterns import router as patterns_router
 from api.predictions import router as predictions_router
 from api.service import router as service_router
 from api.connectors import router as connectors_router
-from auth.security import COOKIE_NAME, bootstrap_owner, decode_access_token
+from auth.security import COOKIE_NAME, LEGACY_COOKIE_NAME, bootstrap_owner, decode_access_token
 from config.logging import configure_logging, get_logger
-from config.settings import settings
+from config.settings import settings, WAYPOINT_VERSION
 from database.session import close_db, init_db
 from knowledge_graph.store import KnowledgeGraphStore
 from memory.store import MemoryStore
@@ -40,11 +40,6 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("app_startup", extra={"env": settings.app_env, "host": settings.app_host, "port": settings.app_port})
-    if settings.is_production and settings.run_migrations_on_startup:
-        import subprocess
-        logger.info("production_migrations_starting")
-        subprocess.run(["alembic", "upgrade", "head"], check=True)
-        logger.info("production_migrations_complete")
     await init_db()
     await bootstrap_owner()
     KnowledgeGraphStore.get()
@@ -77,7 +72,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 _docs_url = None if settings.is_production else "/docs"
 _redoc_url = None if settings.is_production else "/redoc"
 _openapi_url = None if settings.is_production else "/openapi.json"
-app = FastAPI(title="WayPoint — Incident Intelligence", version="2.0.0", docs_url=_docs_url, redoc_url=_redoc_url, openapi_url=_openapi_url, lifespan=lifespan)
+app = FastAPI(title="WayPoint — Incident Intelligence", version=WAYPOINT_VERSION, docs_url=_docs_url, redoc_url=_redoc_url, openapi_url=_openapi_url, lifespan=lifespan)
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -89,7 +84,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # client-selected routing value. Rewrite the header before FastAPI
         # resolves route parameters so legacy endpoints that still declare
         # X-Tenant-Id cannot be tricked into reading another workspace.
-        token = request.cookies.get(COOKIE_NAME)
+        token = request.cookies.get(COOKIE_NAME) or request.cookies.get(LEGACY_COOKIE_NAME)
         if not token:
             auth = request.headers.get("Authorization", "")
             if auth.lower().startswith("bearer "):
@@ -152,7 +147,7 @@ app.include_router(connectors_router)
 
 @app.get("/health", tags=["meta"])
 async def health() -> dict:
-    return {"status": "ok", "version": "2.0.0", "service": "WayPoint"}
+    return {"status": "ok", "version": WAYPOINT_VERSION, "service": "WayPoint"}
 
 
 @app.get("/internal/health", tags=["meta"])
@@ -165,7 +160,7 @@ async def internal_health(
     return {
         "status": "ok",
         "env": settings.app_env,
-        "version": "2.0.0",
+        "version": WAYPOINT_VERSION,
         "service": "WayPoint",
         "memory_scope": "tenant-bound-lazy",
         "memory_size": memory_store.size(),
@@ -215,7 +210,7 @@ async def login_page() -> FileResponse:
 
 @app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False, name="ui")
 async def ui_root(request: Request):
-    if not request.cookies.get(COOKIE_NAME):
+    if not (request.cookies.get(COOKIE_NAME) or request.cookies.get(LEGACY_COOKIE_NAME)):
         return RedirectResponse("/login", status_code=303)
     return FileResponse(STATIC_DIR / "index.html")
 

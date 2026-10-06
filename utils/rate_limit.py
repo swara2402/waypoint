@@ -95,7 +95,7 @@ class RedisRateLimiter:
         self,
         spec: str,
         redis_url: str,
-        key_prefix: str = "prism:rl:",
+        key_prefix: str = "waypoint:rl:",
         client: Optional[Any] = None,
     ) -> None:
         self.limit, self.window = parse_rate(spec)
@@ -125,22 +125,29 @@ class RedisRateLimiter:
         now = time.time()
         cutoff = now - self.window
 
-        pipe = client.pipeline()
-        pipe.zremrangebyscore(redis_key, 0, cutoff)
-        pipe.zcard(redis_key)
-        results = await pipe.execute()
-        count = int(results[1])
-
-        if count >= self.limit:
-            oldest = await client.zrange(redis_key, 0, 0, withscores=True)
-            if oldest:
-                retry_after = max(0.0, float(oldest[0][1]) + self.window - now)
-            else:
-                retry_after = self.window
+        # Keep prune/count/add in one Redis-side operation. A pipeline alone
+        # allows concurrent replicas to observe the same count before ZADD.
+        script = """
+        redis.call('ZREMRANGEBYSCORE', KEYS[1], '-inf', ARGV[1])
+        local count = redis.call('ZCARD', KEYS[1])
+        if count >= tonumber(ARGV[3]) then
+          local oldest = redis.call('ZRANGE', KEYS[1], 0, 0, 'WITHSCORES')
+          if #oldest > 0 then
+            return {0, tonumber(oldest[2])}
+          end
+          return {0, tonumber(ARGV[2])}
+        end
+        redis.call('ZADD', KEYS[1], ARGV[2], ARGV[4])
+        redis.call('EXPIRE', KEYS[1], math.ceil(tonumber(ARGV[5])) + 1)
+        return {1, 0}
+        """
+        member = f"{now}:{uuid.uuid4().hex}"
+        result = await client.eval(
+            script, 1, redis_key, cutoff, now, self.limit, member, self.window
+        )
+        if not bool(int(result[0])):
+            retry_after = max(0.0, float(result[1]) + self.window - now)
             return False, retry_after
-
-        await client.zadd(redis_key, {f"{now}:{uuid.uuid4().hex}": now})
-        await client.expire(redis_key, int(self.window) + 1)
         return True, 0.0
 
     async def reset(self) -> None:
@@ -156,3 +163,43 @@ def build_rate_limiter(spec: str, redis_url: str) -> Any:
     if redis_url:
         return RedisRateLimiter(spec, redis_url)
     return SlidingWindowRateLimiter(spec)
+
+
+class RedisConcurrencyLimiter:
+    """Distributed investigation slots backed by short-lived Redis keys."""
+
+    def __init__(self, limit: int, redis_url: str, lease_seconds: int = 300) -> None:
+        self.limit = max(1, int(limit))
+        self.lease_seconds = max(5, int(lease_seconds))
+        self._url = redis_url
+        self._client = None
+
+    def _get_client(self) -> Any:
+        if self._client is None:
+            import redis.asyncio as aioredis
+            self._client = aioredis.from_url(
+                self._url, encoding="utf-8", decode_responses=True
+            )
+        return self._client
+
+    async def acquire(self, owner: str) -> str | None:
+        if not self._url:
+            return None
+        client = self._get_client()
+        for slot in range(self.limit):
+            key = f"waypoint:investigation-slot:{slot}"
+            if await client.set(key, owner, nx=True, ex=self.lease_seconds):
+                return key
+        return None
+
+    async def release(self, slot_key: str | None, owner: str) -> None:
+        if not slot_key:
+            return
+        client = self._get_client()
+        script = """
+        if redis.call('GET', KEYS[1]) == ARGV[1] then
+          return redis.call('DEL', KEYS[1])
+        end
+        return 0
+        """
+        await client.eval(script, 1, slot_key, owner)

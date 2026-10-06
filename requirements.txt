@@ -32,6 +32,6 @@ aiosqlite==0.22.0
 anyio==4.14.2
 greenlet>=2.0.0
 redis>=5.0.0
-fakeredis>=2.20.0
+fakeredis[lua]>=2.20.0
 
 cryptography==50.0.2

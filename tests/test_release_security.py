@@ -12,6 +12,7 @@ def test_postgresql_scheme_is_not_treated_as_a_weak_password() -> None:
         jwt_secret="jwt-secret-that-is-long-enough-to-pass-32-chars",
         api_key="x" * 40,
         cors_origins="https://waypoint.example.com",
+        redis_url="redis://localhost:6379/0",
     )
     settings.validate_production_secrets()
 

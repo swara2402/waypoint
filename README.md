@@ -258,7 +258,7 @@ curl -H "X-API-Key: $API_KEY" http://localhost:8000/internal/health
 {
   "status": "ok",
   "env": "development",
-  "version": "1.1.0",
+  "version": "2.1.0",
   "memory_size": 0,
   "subsystems": {
     "database": "connected",
@@ -313,7 +313,7 @@ http://localhost:8000/
 ```
 
 It uses the same origin as the API by default. If you deploy the console
-separately from the API, define `window.PRISM_API_URL` **before** loading
+separately from the API, define `window.WAYPOINT_API_URL` **before** loading
 `static/app.js`, e.g.:
 
 ```html
@@ -400,3 +400,5 @@ docker compose down -v
 ## License
 
 MIT
+
+<!-- v2.1-ci-verified-source -->
