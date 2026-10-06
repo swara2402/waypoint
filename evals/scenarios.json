@@ -1,30 +1,1313 @@
 [
   {
-    "id": "db-pool-exhaustion-001",
-    "title": "API requests timing out",
+    "id": "rca-001",
+    "title": "Checkout API latency increased sharply and requests are timing out.",
     "description": "Checkout API latency increased sharply and requests are timing out.",
-    "affected_services": ["checkout-api", "postgres"],
+    "affected_services": [
+      "checkout-api"
+    ],
     "logs": [
       "ERROR checkout-api database connection pool exhausted",
-      "ERROR checkout-api timeout acquiring database connection",
-      "ERROR postgres too many clients"
+      "ERROR checkout-api timeout acquiring database connection"
     ],
     "metrics": {
-      "db_connection_utilization": [0.92, 0.96, 0.99],
-      "checkout_latency_ms": [120, 1800, 2200]
+      "db_connection_utilization": [
+        0.1,
+        0.5,
+        0.9
+      ]
     },
-    "ground_truth": "database connection pool exhaustion"
+    "ground_truth": "database pool exhaustion",
+    "aliases": [
+      "db connection saturation"
+    ]
   },
   {
-    "id": "certificate-expiry-001",
-    "title": "payments TLS failures",
-    "description": "Payments requests began failing with TLS certificate errors.",
-    "affected_services": ["payments-api"],
+    "id": "rca-002",
+    "title": "Resident memory keeps rising after each request batch and the process is eventually OOM-killed.",
+    "description": "Resident memory keeps rising after each request batch and the process is eventually OOM-killed.",
+    "affected_services": [
+      "api-worker"
+    ],
+    "logs": [
+      "ERROR worker OOM killed",
+      "WARN memory usage above 95 percent"
+    ],
+    "metrics": {
+      "memory_usage_percent": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "memory leak",
+    "aliases": [
+      "memory exhaustion from leaked workers"
+    ]
+  },
+  {
+    "id": "rca-003",
+    "title": "CPU remains near 100 percent while request latency rises and no dependency errors are present.",
+    "description": "CPU remains near 100 percent while request latency rises and no dependency errors are present.",
+    "affected_services": [
+      "orders-api"
+    ],
+    "logs": [
+      "WARN CPU throttling detected",
+      "ERROR request processing deadline exceeded"
+    ],
+    "metrics": {
+      "cpu_utilization": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "CPU saturation",
+    "aliases": [
+      "sustained CPU saturation"
+    ]
+  },
+  {
+    "id": "rca-004",
+    "title": "Cache and session requests fail because the Redis backend is refusing connections.",
+    "description": "Cache and session requests fail because the Redis backend is refusing connections.",
+    "affected_services": [
+      "cache-service"
+    ],
+    "logs": [
+      "ERROR Redis connection refused",
+      "ERROR cache backend unavailable"
+    ],
+    "metrics": {
+      "redis_error_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "Redis failure",
+    "aliases": [
+      "Redis unavailable"
+    ]
+  },
+  {
+    "id": "rca-005",
+    "title": "Requests fail only between two services after packet loss begins across the service network.",
+    "description": "Requests fail only between two services after packet loss begins across the service network.",
+    "affected_services": [
+      "payments-api"
+    ],
+    "logs": [
+      "ERROR upstream connection reset",
+      "ERROR network unreachable to billing-api"
+    ],
+    "metrics": {
+      "packet_loss_percent": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "network partition",
+    "aliases": [
+      "network partition between services"
+    ]
+  },
+  {
+    "id": "rca-006",
+    "title": "A dependency hostname stops resolving and outbound requests fail before a TCP connection is made.",
+    "description": "A dependency hostname stops resolving and outbound requests fail before a TCP connection is made.",
+    "affected_services": [
+      "checkout-api"
+    ],
+    "logs": [
+      "ERROR getaddrinfo failed",
+      "ERROR temporary failure in name resolution"
+    ],
+    "metrics": {
+      "dns_error_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "DNS failure",
+    "aliases": [
+      "DNS resolution failure"
+    ]
+  },
+  {
+    "id": "rca-007",
+    "title": "TLS handshakes fail immediately after the service certificate reaches its expiry time.",
+    "description": "TLS handshakes fail immediately after the service certificate reaches its expiry time.",
+    "affected_services": [
+      "payments-api"
+    ],
     "logs": [
       "ERROR x509 certificate has expired",
       "ERROR TLS handshake failed"
     ],
-    "metrics": {"payments_error_rate": [0.01, 0.72, 0.81]},
-    "ground_truth": "expired certificate"
+    "metrics": {
+      "tls_error_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "expired certificate",
+    "aliases": [
+      "expired TLS certificate"
+    ]
+  },
+  {
+    "id": "rca-008",
+    "title": "Errors begin immediately after a new application release and disappear when the previous image is restored.",
+    "description": "Errors begin immediately after a new application release and disappear when the previous image is restored.",
+    "affected_services": [
+      "checkout-api"
+    ],
+    "logs": [
+      "ERROR introduced after release 2026.10.06",
+      "INFO rollback restored request success"
+    ],
+    "metrics": {
+      "error_rate_after_deploy": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "deployment regression",
+    "aliases": [
+      "deployment regression"
+    ]
+  },
+  {
+    "id": "rca-009",
+    "title": "The external fraud provider returns 503 for every request while local CPU and memory remain normal.",
+    "description": "The external fraud provider returns 503 for every request while local CPU and memory remain normal.",
+    "affected_services": [
+      "fraud-service"
+    ],
+    "logs": [
+      "ERROR upstream fraud provider returned 503",
+      "WARN dependency unavailable"
+    ],
+    "metrics": {
+      "upstream_5xx_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "dependency outage",
+    "aliases": [
+      "upstream dependency outage"
+    ]
+  },
+  {
+    "id": "rca-010",
+    "title": "A newly deployed service cannot start because a required configuration value is invalid.",
+    "description": "A newly deployed service cannot start because a required configuration value is invalid.",
+    "affected_services": [
+      "orders-api"
+    ],
+    "logs": [
+      "ERROR invalid configuration value",
+      "ERROR application startup aborted"
+    ],
+    "metrics": {
+      "restart_count": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "bad configuration",
+    "aliases": [
+      "invalid application configuration"
+    ]
+  },
+  {
+    "id": "rca-011",
+    "title": "Valid users are rejected because the identity provider is returning authentication errors.",
+    "description": "Valid users are rejected because the identity provider is returning authentication errors.",
+    "affected_services": [
+      "auth-service"
+    ],
+    "logs": [
+      "ERROR identity provider unavailable",
+      "ERROR token validation failed upstream"
+    ],
+    "metrics": {
+      "auth_error_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "authentication failure",
+    "aliases": [
+      "authentication provider failure"
+    ]
+  },
+  {
+    "id": "rca-012",
+    "title": "The worker queue grows continuously while consumers process messages slower than producers publish them.",
+    "description": "The worker queue grows continuously while consumers process messages slower than producers publish them.",
+    "affected_services": [
+      "order-worker"
+    ],
+    "logs": [
+      "WARN queue depth increasing",
+      "ERROR consumer lag above threshold"
+    ],
+    "metrics": {
+      "queue_depth": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "queue backlog",
+    "aliases": [
+      "message queue backlog"
+    ]
+  },
+  {
+    "id": "rca-013",
+    "title": "The service stops writing logs and temporary files because the node filesystem reaches capacity.",
+    "description": "The service stops writing logs and temporary files because the node filesystem reaches capacity.",
+    "affected_services": [
+      "api-worker"
+    ],
+    "logs": [
+      "ERROR no space left on device",
+      "WARN filesystem usage 99 percent"
+    ],
+    "metrics": {
+      "disk_usage_percent": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "disk exhaustion",
+    "aliases": [
+      "disk space exhaustion"
+    ]
+  },
+  {
+    "id": "rca-014",
+    "title": "A database slowdown causes request timeouts, queue growth, and retries that overload a second service.",
+    "description": "A database slowdown causes request timeouts, queue growth, and retries that overload a second service.",
+    "affected_services": [
+      "checkout-api"
+    ],
+    "logs": [
+      "ERROR database latency exceeded timeout",
+      "WARN retry queue depth increasing"
+    ],
+    "metrics": {
+      "db_latency_ms": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "cascading failure",
+    "aliases": [
+      "cascading dependency failure"
+    ]
+  },
+  {
+    "id": "rca-015",
+    "title": "A connection leak leaves fewer database connections available on every successive request batch.",
+    "description": "A connection leak leaves fewer database connections available on every successive request batch.",
+    "affected_services": [
+      "catalog-api"
+    ],
+    "logs": [
+      "ERROR leaked connection count increasing",
+      "ERROR pool timeout"
+    ],
+    "metrics": {
+      "pool_wait_ms": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "database pool exhaustion",
+    "aliases": [
+      "connection leak causing pool exhaustion"
+    ]
+  },
+  {
+    "id": "rca-016",
+    "title": "Memory rises only when report exports run and never returns to the baseline after completion.",
+    "description": "Memory rises only when report exports run and never returns to the baseline after completion.",
+    "affected_services": [
+      "report-service"
+    ],
+    "logs": [
+      "WARN heap retained after export",
+      "ERROR process memory limit reached"
+    ],
+    "metrics": {
+      "heap_used_mb": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "memory leak",
+    "aliases": [
+      "heap growth in report generation"
+    ]
+  },
+  {
+    "id": "rca-017",
+    "title": "One worker thread spins continuously and consumes all available CPU.",
+    "description": "One worker thread spins continuously and consumes all available CPU.",
+    "affected_services": [
+      "worker"
+    ],
+    "logs": [
+      "ERROR worker loop exceeded CPU budget",
+      "WARN CPU 99 percent"
+    ],
+    "metrics": {
+      "cpu_utilization": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "CPU saturation",
+    "aliases": [
+      "CPU saturation from runaway worker"
+    ]
+  },
+  {
+    "id": "rca-018",
+    "title": "Redis operations exceed their timeout budget and downstream cache reads fail.",
+    "description": "Redis operations exceed their timeout budget and downstream cache reads fail.",
+    "affected_services": [
+      "session-service"
+    ],
+    "logs": [
+      "ERROR Redis command timed out",
+      "ERROR cache read timeout"
+    ],
+    "metrics": {
+      "redis_latency_ms": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "Redis failure",
+    "aliases": [
+      "Redis timeout failure"
+    ]
+  },
+  {
+    "id": "rca-019",
+    "title": "Only calls crossing the service mesh segment fail while local endpoints remain healthy.",
+    "description": "Only calls crossing the service mesh segment fail while local endpoints remain healthy.",
+    "affected_services": [
+      "billing-api"
+    ],
+    "logs": [
+      "ERROR upstream socket timeout",
+      "WARN packet loss to payments-api"
+    ],
+    "metrics": {
+      "packet_loss_percent": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "network partition",
+    "aliases": [
+      "service-to-service packet loss"
+    ]
+  },
+  {
+    "id": "rca-020",
+    "title": "The service receives NXDOMAIN responses for a dependency hostname after a DNS record change.",
+    "description": "The service receives NXDOMAIN responses for a dependency hostname after a DNS record change.",
+    "affected_services": [
+      "notifications-api"
+    ],
+    "logs": [
+      "ERROR NXDOMAIN for smtp.internal",
+      "ERROR resolver returned name does not exist"
+    ],
+    "metrics": {
+      "dns_nxdomain_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "DNS failure",
+    "aliases": [
+      "stale DNS record failure"
+    ]
+  },
+  {
+    "id": "rca-021",
+    "title": "A rotated certificate has an invalid validity window and TLS clients reject it.",
+    "description": "A rotated certificate has an invalid validity window and TLS clients reject it.",
+    "affected_services": [
+      "gateway"
+    ],
+    "logs": [
+      "ERROR certificate is not yet valid",
+      "ERROR TLS verification failed"
+    ],
+    "metrics": {
+      "tls_error_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "expired certificate",
+    "aliases": [
+      "certificate not yet valid"
+    ]
+  },
+  {
+    "id": "rca-022",
+    "title": "A release enables a feature flag that causes all checkout requests to fail.",
+    "description": "A release enables a feature flag that causes all checkout requests to fail.",
+    "affected_services": [
+      "checkout-api"
+    ],
+    "logs": [
+      "ERROR feature flag checkout_v2 failed",
+      "INFO previous release healthy"
+    ],
+    "metrics": {
+      "checkout_error_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "deployment regression",
+    "aliases": [
+      "bad release configuration"
+    ]
+  },
+  {
+    "id": "rca-023",
+    "title": "The payment provider returns gateway errors across all regions at the same time.",
+    "description": "The payment provider returns gateway errors across all regions at the same time.",
+    "affected_services": [
+      "payments-api"
+    ],
+    "logs": [
+      "ERROR provider gateway unavailable",
+      "ERROR upstream 502 from payment provider"
+    ],
+    "metrics": {
+      "provider_5xx_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "dependency outage",
+    "aliases": [
+      "payment provider outage"
+    ]
+  },
+  {
+    "id": "rca-024",
+    "title": "A worker cannot initialize because its required queue URL environment variable is missing.",
+    "description": "A worker cannot initialize because its required queue URL environment variable is missing.",
+    "affected_services": [
+      "queue-worker"
+    ],
+    "logs": [
+      "ERROR QUEUE_URL is required",
+      "ERROR startup configuration validation failed"
+    ],
+    "metrics": {
+      "restart_count": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "bad configuration",
+    "aliases": [
+      "missing environment variable"
+    ]
+  },
+  {
+    "id": "rca-025",
+    "title": "Tokens issued by the identity provider cannot be validated after its signing key rotation.",
+    "description": "Tokens issued by the identity provider cannot be validated after its signing key rotation.",
+    "affected_services": [
+      "api-gateway"
+    ],
+    "logs": [
+      "ERROR JWT signing key not found",
+      "ERROR token signature validation failed"
+    ],
+    "metrics": {
+      "auth_error_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "authentication failure",
+    "aliases": [
+      "expired signing key at identity provider"
+    ]
+  },
+  {
+    "id": "rca-026",
+    "title": "A consumer stops acknowledging messages and queue depth grows without corresponding processing throughput.",
+    "description": "A consumer stops acknowledging messages and queue depth grows without corresponding processing throughput.",
+    "affected_services": [
+      "email-worker"
+    ],
+    "logs": [
+      "ERROR consumer heartbeat lost",
+      "WARN queue depth increasing"
+    ],
+    "metrics": {
+      "queue_depth": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "queue backlog",
+    "aliases": [
+      "stuck consumer"
+    ]
+  },
+  {
+    "id": "rca-027",
+    "title": "New files cannot be created even though byte usage is below capacity because inodes are exhausted.",
+    "description": "New files cannot be created even though byte usage is below capacity because inodes are exhausted.",
+    "affected_services": [
+      "logging-agent"
+    ],
+    "logs": [
+      "ERROR no space left on device",
+      "WARN inode usage 100 percent"
+    ],
+    "metrics": {
+      "inode_usage_percent": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "disk exhaustion",
+    "aliases": [
+      "inode exhaustion"
+    ]
+  },
+  {
+    "id": "rca-028",
+    "title": "A slow dependency causes aggressive retries which saturate the API and then exhaust the queue workers.",
+    "description": "A slow dependency causes aggressive retries which saturate the API and then exhaust the queue workers.",
+    "affected_services": [
+      "api-gateway"
+    ],
+    "logs": [
+      "WARN retry rate spiking",
+      "ERROR worker saturation caused by retries"
+    ],
+    "metrics": {
+      "retry_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "cascading failure",
+    "aliases": [
+      "retry storm cascade"
+    ]
+  },
+  {
+    "id": "rca-029",
+    "title": "Multiple application replicas hit the database connection ceiling and new connections are refused.",
+    "description": "Multiple application replicas hit the database connection ceiling and new connections are refused.",
+    "affected_services": [
+      "orders-api"
+    ],
+    "logs": [
+      "ERROR remaining connection slots are reserved",
+      "ERROR connection refused by database"
+    ],
+    "metrics": {
+      "db_active_connections": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "database pool exhaustion",
+    "aliases": [
+      "database max client limit"
+    ]
+  },
+  {
+    "id": "rca-030",
+    "title": "An in-process cache grows without eviction and eventually triggers container memory pressure.",
+    "description": "An in-process cache grows without eviction and eventually triggers container memory pressure.",
+    "affected_services": [
+      "search-api"
+    ],
+    "logs": [
+      "WARN cache entries never evicted",
+      "ERROR OOMKilled"
+    ],
+    "metrics": {
+      "cache_entries": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "memory leak",
+    "aliases": [
+      "cache retention leak"
+    ]
+  },
+  {
+    "id": "rca-031",
+    "title": "Large response compression consumes all CPU and pushes latency beyond the SLA.",
+    "description": "Large response compression consumes all CPU and pushes latency beyond the SLA.",
+    "affected_services": [
+      "api-gateway"
+    ],
+    "logs": [
+      "WARN compression workers at CPU limit",
+      "ERROR request timeout"
+    ],
+    "metrics": {
+      "cpu_utilization": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "CPU saturation",
+    "aliases": [
+      "CPU saturation from compression"
+    ]
+  },
+  {
+    "id": "rca-032",
+    "title": "The Redis cluster is in failover and commands return CLUSTERDOWN errors.",
+    "description": "The Redis cluster is in failover and commands return CLUSTERDOWN errors.",
+    "affected_services": [
+      "cart-service"
+    ],
+    "logs": [
+      "ERROR CLUSTERDOWN The cluster is down",
+      "ERROR Redis command failed"
+    ],
+    "metrics": {
+      "redis_error_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "Redis failure",
+    "aliases": [
+      "Redis cluster failover failure"
+    ]
+  },
+  {
+    "id": "rca-033",
+    "title": "A network policy update blocks traffic from the API to its database subnet.",
+    "description": "A network policy update blocks traffic from the API to its database subnet.",
+    "affected_services": [
+      "orders-api"
+    ],
+    "logs": [
+      "ERROR connection timed out to database",
+      "INFO network policy changed"
+    ],
+    "metrics": {
+      "connection_timeout_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "network partition",
+    "aliases": [
+      "firewall rule regression"
+    ]
+  },
+  {
+    "id": "rca-034",
+    "title": "All dependency lookups fail because the configured DNS resolver is unreachable.",
+    "description": "All dependency lookups fail because the configured DNS resolver is unreachable.",
+    "affected_services": [
+      "api-gateway"
+    ],
+    "logs": [
+      "ERROR DNS server unreachable",
+      "ERROR name resolution timeout"
+    ],
+    "metrics": {
+      "dns_error_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "DNS failure",
+    "aliases": [
+      "resolver outage"
+    ]
+  },
+  {
+    "id": "rca-035",
+    "title": "Clients reject the chain because an intermediate certificate has expired.",
+    "description": "Clients reject the chain because an intermediate certificate has expired.",
+    "affected_services": [
+      "edge-proxy"
+    ],
+    "logs": [
+      "ERROR certificate chain contains expired certificate",
+      "ERROR TLS handshake failure"
+    ],
+    "metrics": {
+      "tls_error_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "expired certificate",
+    "aliases": [
+      "intermediate certificate expired"
+    ]
+  },
+  {
+    "id": "rca-036",
+    "title": "A new release expects a schema field that the production database migration did not create.",
+    "description": "A new release expects a schema field that the production database migration did not create.",
+    "affected_services": [
+      "orders-api"
+    ],
+    "logs": [
+      "ERROR column order_state does not exist",
+      "INFO deployment completed successfully"
+    ],
+    "metrics": {
+      "http_5xx_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "deployment regression",
+    "aliases": [
+      "schema-incompatible release"
+    ]
+  },
+  {
+    "id": "rca-037",
+    "title": "Email delivery fails because the external provider is returning 429/503 responses.",
+    "description": "Email delivery fails because the external provider is returning 429/503 responses.",
+    "affected_services": [
+      "notification-service"
+    ],
+    "logs": [
+      "ERROR email provider unavailable",
+      "WARN external dependency error"
+    ],
+    "metrics": {
+      "provider_error_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "dependency outage",
+    "aliases": [
+      "email provider outage"
+    ]
+  },
+  {
+    "id": "rca-038",
+    "title": "The service is configured with an unreachable database hostname after a deployment change.",
+    "description": "The service is configured with an unreachable database hostname after a deployment change.",
+    "affected_services": [
+      "inventory-api"
+    ],
+    "logs": [
+      "ERROR could not translate host name db-prod-new",
+      "ERROR database connection failed"
+    ],
+    "metrics": {
+      "startup_failure_count": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "bad configuration",
+    "aliases": [
+      "wrong database host"
+    ]
+  },
+  {
+    "id": "rca-039",
+    "title": "Permission checks fail because the centralized authorization service is unavailable.",
+    "description": "Permission checks fail because the centralized authorization service is unavailable.",
+    "affected_services": [
+      "admin-api"
+    ],
+    "logs": [
+      "ERROR authorization service timeout",
+      "ERROR access policy unavailable"
+    ],
+    "metrics": {
+      "authorization_error_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "authentication failure",
+    "aliases": [
+      "authorization service outage"
+    ]
+  },
+  {
+    "id": "rca-040",
+    "title": "A sudden producer burst exceeds consumer throughput and creates a sustained queue backlog.",
+    "description": "A sudden producer burst exceeds consumer throughput and creates a sustained queue backlog.",
+    "affected_services": [
+      "events-worker"
+    ],
+    "logs": [
+      "WARN producer rate exceeds consumer rate",
+      "WARN queue depth above 100000"
+    ],
+    "metrics": {
+      "queue_depth": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "queue backlog",
+    "aliases": [
+      "producer burst overload"
+    ]
+  },
+  {
+    "id": "rca-041",
+    "title": "A temporary volume fills from generated artifacts and requests start failing on file creation.",
+    "description": "A temporary volume fills from generated artifacts and requests start failing on file creation.",
+    "affected_services": [
+      "image-worker"
+    ],
+    "logs": [
+      "ERROR write failed no space left on device",
+      "WARN temp volume usage 100 percent"
+    ],
+    "metrics": {
+      "disk_usage_percent": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "disk exhaustion",
+    "aliases": [
+      "temporary volume full"
+    ]
+  },
+  {
+    "id": "rca-042",
+    "title": "Database latency causes API retries, which multiply database load and lead to worker timeouts.",
+    "description": "Database latency causes API retries, which multiply database load and lead to worker timeouts.",
+    "affected_services": [
+      "checkout-api"
+    ],
+    "logs": [
+      "ERROR database timeout",
+      "WARN retry storm detected"
+    ],
+    "metrics": {
+      "retry_rate": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "ground_truth": "cascading failure",
+    "aliases": [
+      "database retry cascade"
+    ]
+  },
+  {
+    "id": "negative-043",
+    "title": "The incident report contains only a generic timeout with no dependency, metric, or causal evidence.",
+    "description": "The incident report contains only a generic timeout with no dependency, metric, or causal evidence.",
+    "affected_services": [
+      "api"
+    ],
+    "logs": [
+      "ERROR request timed out"
+    ],
+    "metrics": {
+      "request_latency_ms": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
+  },
+  {
+    "id": "negative-044",
+    "title": "A single intermittent 500 is reported with no logs, metrics, traces, or deployment information.",
+    "description": "A single intermittent 500 is reported with no logs, metrics, traces, or deployment information.",
+    "affected_services": [
+      "api"
+    ],
+    "logs": [
+      "ERROR HTTP 500"
+    ],
+    "metrics": {
+      "error_count": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
+  },
+  {
+    "id": "negative-045",
+    "title": "Logs say the database is healthy while another agent claims it is unavailable, with no corroborating metric.",
+    "description": "Logs say the database is healthy while another agent claims it is unavailable, with no corroborating metric.",
+    "affected_services": [
+      "orders-api"
+    ],
+    "logs": [
+      "INFO database healthy"
+    ],
+    "metrics": {
+      "WARN database unavailable": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
+  },
+  {
+    "id": "negative-046",
+    "title": "A generic timeout message points at the cache, but metrics show normal cache latency and no connection errors.",
+    "description": "A generic timeout message points at the cache, but metrics show normal cache latency and no connection errors.",
+    "affected_services": [
+      "api"
+    ],
+    "logs": [
+      "ERROR cache timeout"
+    ],
+    "metrics": {
+      "cache_latency_ms": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
+  },
+  {
+    "id": "negative-047",
+    "title": "CPU is saturated and the database is also refusing connections, but there is not enough evidence to establish which is primary.",
+    "description": "CPU is saturated and the database is also refusing connections, but there is not enough evidence to establish which is primary.",
+    "affected_services": [
+      "api"
+    ],
+    "logs": [
+      "ERROR database connection refused"
+    ],
+    "metrics": {
+      "WARN CPU 99 percent": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
+  },
+  {
+    "id": "negative-048",
+    "title": "Only a user report says the service is slow. No machine evidence is supplied.",
+    "description": "Only a user report says the service is slow. No machine evidence is supplied.",
+    "affected_services": [
+      "web"
+    ],
+    "logs": [
+      "user reports slow requests"
+    ],
+    "metrics": {
+      "latency": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
+  },
+  {
+    "id": "negative-049",
+    "title": "Two logs identify different dependencies as the cause and neither is supported by metrics.",
+    "description": "Two logs identify different dependencies as the cause and neither is supported by metrics.",
+    "affected_services": [
+      "gateway"
+    ],
+    "logs": [
+      "ERROR database unavailable"
+    ],
+    "metrics": {
+      "ERROR Redis unavailable": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
+  },
+  {
+    "id": "negative-050",
+    "title": "A stale startup warning is present, but the actual failure has no correlated evidence.",
+    "description": "A stale startup warning is present, but the actual failure has no correlated evidence.",
+    "affected_services": [
+      "worker"
+    ],
+    "logs": [
+      "WARN previous startup warning"
+    ],
+    "metrics": {
+      "current_error_rate": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
+  },
+  {
+    "id": "negative-051",
+    "title": "The incident description says system broken without technical evidence.",
+    "description": "The incident description says system broken without technical evidence.",
+    "affected_services": [
+      "platform"
+    ],
+    "logs": [
+      "system broken"
+    ],
+    "metrics": {
+      "signal_count": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
+  },
+  {
+    "id": "negative-052",
+    "title": "A trace shows successful downstream calls while logs report a timeout, with no timing correlation.",
+    "description": "A trace shows successful downstream calls while logs report a timeout, with no timing correlation.",
+    "affected_services": [
+      "api"
+    ],
+    "logs": [
+      "INFO downstream request succeeded"
+    ],
+    "metrics": {
+      "ERROR request timeout": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
+  },
+  {
+    "id": "negative-053",
+    "title": "Disk usage is high and DNS is failing, but the incident contains no timeline to identify the primary cause.",
+    "description": "Disk usage is high and DNS is failing, but the incident contains no timeline to identify the primary cause.",
+    "affected_services": [
+      "worker"
+    ],
+    "logs": [
+      "WARN disk usage 98 percent"
+    ],
+    "metrics": {
+      "ERROR DNS resolution failed": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
+  },
+  {
+    "id": "negative-054",
+    "title": "Only a spike in latency is observed with no associated error, dependency, or resource signal.",
+    "description": "Only a spike in latency is observed with no associated error, dependency, or resource signal.",
+    "affected_services": [
+      "api"
+    ],
+    "logs": [
+      "WARN latency above SLA"
+    ],
+    "metrics": {
+      "latency_ms": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
+  },
+  {
+    "id": "negative-055",
+    "title": "A known benign warning appears repeatedly, but there is no evidence that it caused the incident.",
+    "description": "A known benign warning appears repeatedly, but there is no evidence that it caused the incident.",
+    "affected_services": [
+      "api"
+    ],
+    "logs": [
+      "WARN retry budget near threshold"
+    ],
+    "metrics": {
+      "error_rate": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
+  },
+  {
+    "id": "negative-056",
+    "title": "Metrics show normal CPU and memory while one log claims resource exhaustion.",
+    "description": "Metrics show normal CPU and memory while one log claims resource exhaustion.",
+    "affected_services": [
+      "worker"
+    ],
+    "logs": [
+      "ERROR out of memory"
+    ],
+    "metrics": {
+      "cpu_utilization": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
+  },
+  {
+    "id": "negative-057",
+    "title": "A deployment happened recently, but there is no evidence connecting it to the incident.",
+    "description": "A deployment happened recently, but there is no evidence connecting it to the incident.",
+    "affected_services": [
+      "api"
+    ],
+    "logs": [
+      "INFO deployment completed"
+    ],
+    "metrics": {
+      "error_rate": [
+        0.2,
+        0.2,
+        0.2
+      ]
+    },
+    "ground_truth": "insufficient evidence",
+    "aliases": [
+      "insufficient evidence"
+    ],
+    "negative": true
   }
 ]

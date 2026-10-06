@@ -18,7 +18,7 @@ env:
   APP_ENV: test
   DATABASE_URL: sqlite+aiosqlite:///./waypoint-ci.db
   DATABASE_SYNC_URL: sqlite:///./waypoint-ci.db
-  PRISM_JWT_SECRET: test-only-jwt-secret-012345678901234567890123
+  WAYPOINT_JWT_SECRET: test-only-jwt-secret-012345678901234567890123
   API_KEY: test-only-api-key
   ENABLE_NEO4J: "false"
   ENABLE_OLLAMA: "false"
@@ -129,6 +129,22 @@ jobs:
         run: python -m pip install --upgrade pip vulture
       - name: Detect high-confidence dead code
         run: vulture . --min-confidence 100 --exclude .git,.venv,venv,node_modules,dist,build
+
+  evaluation-benchmark:
+    name: RCA benchmark and evaluation metrics
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate benchmark coverage
+        run: python evals/validate_benchmark.py
+      - name: Evaluate committed fixture
+        run: python evals/evaluate.py evals/sample-results.json
 
   production-image:
     name: Production container smoke

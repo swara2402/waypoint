@@ -1,0 +1,47 @@
+{
+  "results": [
+    {
+      "id": "rca-001",
+      "response": {
+        "root_cause": {
+          "root_cause": "database pool exhaustion",
+          "alternatives": []
+        },
+        "explanation": {
+          "evidence_used": [
+            "db_connection_utilization"
+          ]
+        },
+        "duration_seconds": 0.42
+      }
+    },
+    {
+      "id": "rca-007",
+      "response": {
+        "root_cause": {
+          "root_cause": "expired certificate",
+          "alternatives": []
+        },
+        "explanation": {
+          "evidence_used": [
+            "tls_error_rate"
+          ]
+        },
+        "duration_seconds": 0.31
+      }
+    },
+    {
+      "id": "negative-043",
+      "response": {
+        "root_cause": {
+          "root_cause": "undetermined",
+          "alternatives": []
+        },
+        "explanation": {
+          "evidence_used": []
+        },
+        "duration_seconds": 0.12
+      }
+    }
+  ]
+}

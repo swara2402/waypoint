@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: prism_postgres
+    container_name: waypoint_postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-incident}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
@@ -31,7 +31,7 @@ services:
     restart: unless-stopped
 
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:0.35.1
     container_name: prism_ollama
     ports:
       - "127.0.0.1:11434:11434"

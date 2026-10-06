@@ -19,7 +19,8 @@ from database.auth_models import Tenant, User
 from database.session import AsyncSessionLocal
 
 ALGORITHM = "HS256"
-COOKIE_NAME = "prism_session"
+COOKIE_NAME = "waypoint_session"
+LEGACY_COOKIE_NAME = "prism_session"
 ROLE_ORDER = {"viewer": 10, "engineer": 20, "admin": 30, "owner": 40}
 PBKDF2_ROUNDS = 310_000
 
@@ -39,22 +40,38 @@ SESSION_HOURS = settings.session_hours
 # Token revocation
 # --------------------------------------------------------------------------
 # JWTs are self-contained and therefore valid until ``exp``. A denylist keyed on
-# the token's ``jti`` makes logout and forced revocation effective. Entries are
-# kept only until the underlying token would have expired anyway, so the store
-# is bounded by the number of live sessions rather than growing forever.
+# the token's ``jti`` makes logout and forced revocation effective. Production
+# uses Redis so every API replica observes the same revocation state. Local/test
+# environments retain an in-memory fallback to avoid requiring infrastructure.
 _REVOKED: dict[str, float] = {}
+_REDIS_REVOCATION_CLIENT = None
+_REDIS_REVOCATION_PREFIX = "waypoint:revoked:"
 
+async def _revocation_redis():
+    global _REDIS_REVOCATION_CLIENT
+    if _REDIS_REVOCATION_CLIENT is None and settings.redis_url:
+        import redis.asyncio as aioredis
+        _REDIS_REVOCATION_CLIENT = aioredis.from_url(
+            settings.redis_url, encoding="utf-8", decode_responses=True
+        )
+    return _REDIS_REVOCATION_CLIENT
 
-def revoke_jti(jti: str, ttl_seconds: float) -> None:
+async def revoke_jti(jti: str, ttl_seconds: float) -> None:
     if not jti or ttl_seconds <= 0:
+        return
+    client = await _revocation_redis()
+    if client is not None:
+        await client.set(f"{_REDIS_REVOCATION_PREFIX}{jti}", "1", ex=max(1, int(ttl_seconds)))
         return
     _REVOKED[jti] = time.time() + ttl_seconds
     _prune_revoked()
 
-
-def is_revoked(jti: str) -> bool:
+async def is_revoked(jti: str) -> bool:
     if not jti:
         return False
+    client = await _revocation_redis()
+    if client is not None:
+        return bool(await client.exists(f"{_REDIS_REVOCATION_PREFIX}{jti}"))
     expires_at = _REVOKED.get(jti)
     if expires_at is None:
         return False
@@ -62,7 +79,6 @@ def is_revoked(jti: str) -> bool:
         _REVOKED.pop(jti, None)
         return False
     return True
-
 
 def _prune_revoked() -> None:
     if len(_REVOKED) < 256:
@@ -176,7 +192,7 @@ async def authenticate_login(
 
 
 async def principal_from_request(request: Request) -> Principal:
-    token = request.cookies.get(COOKIE_NAME)
+    token = request.cookies.get(COOKIE_NAME) or request.cookies.get(LEGACY_COOKIE_NAME)
     if not token:
         auth = request.headers.get("Authorization", "")
         if auth.lower().startswith("bearer "):
@@ -188,16 +204,16 @@ async def principal_from_request(request: Request) -> Principal:
     except jwt.PyJWTError:
         raise HTTPException(
             401,
-            "Your PRISM session has expired. Please sign in again.",
+            "Your WayPoint session has expired. Please sign in again.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if is_revoked(claims.get("jti", "")):
-        raise HTTPException(401, "Your PRISM session has been revoked. Please sign in again.")
+    if await is_revoked(claims.get("jti", "")):
+        raise HTTPException(401, "Your WayPoint session has been revoked. Please sign in again.")
     user_id = claims.get("sub")
     tenant_id = claims.get("tenant_id")
     role = claims.get("role")
     if not user_id or not tenant_id or role not in ROLE_ORDER:
-        raise HTTPException(401, "Invalid PRISM session")
+        raise HTTPException(401, "Invalid WayPoint session")
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             select(User, Tenant)
@@ -254,8 +270,8 @@ def _required_scope(path: str, method: str) -> str:
 
 
 async def bootstrap_owner() -> None:
-    email = os.getenv("PRISM_BOOTSTRAP_EMAIL", "").strip().lower()
-    password = os.getenv("PRISM_BOOTSTRAP_PASSWORD", "")
+    email = settings.bootstrap_email.strip().lower()
+    password = settings.bootstrap_password
     if not email or not password:
         return
     async with AsyncSessionLocal() as session:
@@ -267,10 +283,10 @@ async def bootstrap_owner() -> None:
             # A workspace exists but has no owner. Refuse to silently leave it
             # owner-less: an operator must either grant an owner or reset state.
             raise SystemExit(
-                "PRISM_BOOTSTRAP_EMAIL/PASSWORD are still set but an owner already exists. "
+                "WAYPOINT_BOOTSTRAP_EMAIL/PASSWORD are still set but an owner already exists. "
                 "Clear the bootstrap variables after first run."
             )
-        tenant = Tenant(name=os.getenv("PRISM_BOOTSTRAP_TENANT_NAME", "My PRISM Workspace"))
+        tenant = Tenant(name=settings.bootstrap_tenant_name)
         session.add(tenant)
         await session.flush()
         session.add(

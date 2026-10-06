@@ -206,14 +206,45 @@ class CausalGraph:
             if not sources:
                 sources = list(ancestors)[:1]
             best_path: List[str] = []
-            for src in sources:
-                try:
-                    paths = list(nx.all_simple_paths(self.graph, src, leaf_node_id))
-                    for p in paths:
-                        if len(p) > len(best_path):
-                            best_path = p
-                except nx.NetworkXError:
-                    continue
+            max_depth = 10
+            max_paths = 256
+            relevant = self.graph.subgraph(ancestors | {leaf_node_id}).copy()
+
+            # DAGs can be solved with dynamic programming without enumerating
+            # every simple path. Cyclic graphs use a bounded generator so a
+            # dense incident graph cannot explode CPU/memory usage.
+            if nx.is_directed_acyclic_graph(relevant):
+                best_to_leaf: Dict[str, List[str]] = {leaf_node_id: [leaf_node_id]}
+                for node in reversed(list(nx.topological_sort(relevant))):
+                    if node == leaf_node_id:
+                        continue
+                    candidates = [
+                        [node] + best_to_leaf[child]
+                        for child in relevant.successors(node)
+                        if child in best_to_leaf
+                    ]
+                    if candidates:
+                        best_to_leaf[node] = max(candidates, key=len)
+                for src in sources:
+                    path = best_to_leaf.get(src, [])
+                    if len(path) > len(best_path):
+                        best_path = path
+            else:
+                examined = 0
+                for src in sources:
+                    try:
+                        for p in nx.all_simple_paths(
+                            self.graph, src, leaf_node_id, cutoff=max_depth
+                        ):
+                            examined += 1
+                            if len(p) > len(best_path):
+                                best_path = p
+                            if examined >= max_paths:
+                                break
+                    except nx.NetworkXError:
+                        continue
+                    if examined >= max_paths:
+                        break
             if not best_path:
                 best_path = [leaf_node_id]
             for nid in best_path:

@@ -4,7 +4,7 @@
    ============================================================ */
 "use strict";
 
-const BASE_API_URL = (window.PRISM_API_URL || "").replace(/\/$/, "");
+const BASE_API_URL = (window.WAYPOINT_API_URL || window.PRISM_API_URL || "").replace(/\/$/, "");
 
 /* ---------- Tiny DOM / util helpers ---------- */
 const $ = (sel, root = document) => root.querySelector(sel);

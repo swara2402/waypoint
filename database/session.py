@@ -110,13 +110,8 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def init_db() -> None:
     """Initialize schema for tests/dev; production must use Alembic."""
     if settings.is_production:
-        # Existing production schema remains Alembic-managed. The service
-        # configuration table is additive and created idempotently here.
-        from database.service_models import WorkspaceConfig
-        async with get_engine().begin() as conn:
-            await conn.run_sync(
-                lambda sync_conn: WorkspaceConfig.__table__.create(sync_conn, checkfirst=True)
-            )
+        # Production schema is exclusively owned by the deployment migration
+        # step. Application startup must never mutate production schema.
         return
     from database import models  # noqa: F401
     from database import auth_models  # noqa: F401
