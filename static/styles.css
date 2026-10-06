@@ -2449,3 +2449,54 @@ body[data-theme="light"] #btn-settings{color:#536078}
   .ui-v2 .ui-hero{min-height:180px;padding:24px}
   .ui-v2 .ui-hero-copy h2{font-size:30px}
 }
+
+
+/* v2.2 live product feel: motion communicates state, never decoration */
+.ui-v2 .status-dot.ok,.ui-v2 .status-dot.idle{position:relative}
+.ui-v2 .status-dot.ok::after,.ui-v2 .status-dot.idle::after{
+  content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid currentColor;opacity:0;
+  animation:waypointPulse 2.2s ease-out infinite
+}
+.ui-v2 .status-dot.ok{color:#35d39a}
+.ui-v2 .status-dot.idle{color:#f5c451}
+@keyframes waypointPulse{0%{transform:scale(.7);opacity:.5}70%,100%{transform:scale(1.7);opacity:0}}
+
+.ui-v2 .ui-hero{animation:heroIn .5s ease-out both}
+@keyframes heroIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.ui-v2 .ui-command-stats .stat-card,
+.ui-v2 .ui-overview-grid .panel,
+.ui-v2 .ui-flow-strip{animation:cardIn .45s ease-out both}
+.ui-v2 .ui-command-stats .stat-card:nth-child(2){animation-delay:.04s}
+.ui-v2 .ui-command-stats .stat-card:nth-child(3){animation-delay:.08s}
+.ui-v2 .ui-command-stats .stat-card:nth-child(4){animation-delay:.12s}
+@keyframes cardIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.ui-v2 .btn-primary{transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
+.ui-v2 .btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(124,92,255,.32)}
+.ui-v2 .choice-card{transition:transform .18s ease,border-color .18s ease,background .18s ease}
+.ui-v2 .pipeline-step{position:relative;overflow:hidden;transition:background .2s ease,border-color .2s ease,transform .2s ease}
+.ui-v2 .pipeline-step.active{transform:translateX(3px)}
+.ui-v2 .pipeline-step.active::after{
+  content:"";position:absolute;left:-35%;top:0;width:35%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(167,139,250,.12),transparent);
+  animation:stepSweep 1.7s linear infinite
+}
+@keyframes stepSweep{to{left:110%}}
+.ui-v2 .pipeline-step.done .pipeline-dot{animation:donePop .3s ease-out both}
+@keyframes donePop{0%{transform:scale(.7)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+.ui-v2 .run-clock{font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.ui-v2 .run-clock::before{content:"LIVE  ";font-size:9px;letter-spacing:.12em;color:#35d39a;vertical-align:2px}
+.ui-v2 .friendly-run{position:relative}
+.ui-v2 .friendly-run::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:2px;border-radius:14px 14px 0 0;
+  background:linear-gradient(90deg,#7c5cff,#35d39a,#7c5cff);background-size:200% 100%;
+  animation:liveBar 2.4s linear infinite
+}
+@keyframes liveBar{to{background-position:200% 0}}
+
+@media (prefers-reduced-motion:reduce){
+  .ui-v2 *, .ui-v2 *::before, .ui-v2 *::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+body[data-theme="light"] .ui-v2 .friendly-run::before{background:linear-gradient(90deg,#315efb,#35a77d,#315efb);background-size:200% 100%}
+body[data-theme="light"] .ui-v2 .pipeline-step.active::after{background:linear-gradient(90deg,transparent,rgba(49,94,251,.10),transparent)}
