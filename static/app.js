@@ -2069,12 +2069,20 @@ function initSettings() {
     input.value = getApiKey();
     status.textContent = getApiKey() ? "Advanced API access is configured." : "No advanced API key configured.";
     modal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(() => input?.focus());
   };
-  const close = () => modal.classList.add("hidden");
+  const close = () => {
+    modal.classList.add("hidden");
+    document.body.style.overflow = "";
+  };
 
   openBtn.addEventListener("click", open);
   closeBtn?.addEventListener("click", close);
   modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.classList.contains("hidden")) close();
+  });
   saveBtn?.addEventListener("click", () => {
     setApiKey(input.value.trim());
     status.textContent = "Saved";

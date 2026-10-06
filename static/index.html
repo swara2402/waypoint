@@ -123,8 +123,8 @@
     <header class="topbar">
       <button class="icon-btn menu-btn" id="nav-toggle" aria-label="Toggle navigation"><svg class="ic"><use href="#i-overview"/></svg></button>
       <div class="topbar-titles">
-        <h1 class="view-title" id="view-title">Overview</h1>
-        <p class="view-sub" id="view-sub">System health at a glance</p>
+        <h1 class="view-title" id="view-title">Home</h1>
+        <p class="view-sub" id="view-sub">See what needs your attention</p>
       </div>
       <div class="topbar-actions" id="topbar-actions">
         <button class="icon-btn" id="btn-theme" title="Switch theme" aria-label="Switch between light and dark mode">
@@ -408,9 +408,9 @@
         <input id="settings-api-key" type="password" spellcheck="false" placeholder="Enter an API key only if your workspace requires one" autocomplete="off">
       </label>
       <div class="field span-2" style="display:flex;gap:.75rem;align-items:center">
-        <button class="btn primary" id="settings-save">Save settings</button>
-        <button class="btn ghost" id="settings-clear">Clear</button>
-        <span class="hint" id="settings-status"></span>
+        <button class="btn btn-primary" id="settings-save">Save settings</button>
+        <button class="btn btn-ghost" id="settings-clear">Clear</button>
+        <span class="hint" id="settings-status" role="status" aria-live="polite"></span>
       </div>
     </div>
   </div>
