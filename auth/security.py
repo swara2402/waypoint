@@ -19,7 +19,8 @@ from database.auth_models import Tenant, User
 from database.session import AsyncSessionLocal
 
 ALGORITHM = "HS256"
-COOKIE_NAME = "prism_session"
+COOKIE_NAME = "waypoint_session"
+LEGACY_COOKIE_NAME = "prism_session"
 ROLE_ORDER = {"viewer": 10, "engineer": 20, "admin": 30, "owner": 40}
 PBKDF2_ROUNDS = 310_000
 
@@ -191,7 +192,7 @@ async def authenticate_login(
 
 
 async def principal_from_request(request: Request) -> Principal:
-    token = request.cookies.get(COOKIE_NAME)
+    token = request.cookies.get(COOKIE_NAME) or request.cookies.get(LEGACY_COOKIE_NAME)
     if not token:
         auth = request.headers.get("Authorization", "")
         if auth.lower().startswith("bearer "):
@@ -269,8 +270,8 @@ def _required_scope(path: str, method: str) -> str:
 
 
 async def bootstrap_owner() -> None:
-    email = os.getenv("PRISM_BOOTSTRAP_EMAIL", "").strip().lower()
-    password = os.getenv("PRISM_BOOTSTRAP_PASSWORD", "")
+    email = settings.bootstrap_email.strip().lower()
+    password = settings.bootstrap_password
     if not email or not password:
         return
     async with AsyncSessionLocal() as session:
@@ -285,7 +286,7 @@ async def bootstrap_owner() -> None:
                 "PRISM_BOOTSTRAP_EMAIL/PASSWORD are still set but an owner already exists. "
                 "Clear the bootstrap variables after first run."
             )
-        tenant = Tenant(name=os.getenv("PRISM_BOOTSTRAP_TENANT_NAME", "My PRISM Workspace"))
+        tenant = Tenant(name=settings.bootstrap_tenant_name)
         session.add(tenant)
         await session.flush()
         session.add(
