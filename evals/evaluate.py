@@ -77,6 +77,10 @@ def evaluate(results: list[dict], scenarios: list[dict]) -> dict[str, Any]:
 
 def main(path: str) -> int:
     results = json.loads(Path(path).read_text(encoding="utf-8"))
+    if isinstance(results, dict) and isinstance(results.get("results"), list):
+        results = results["results"]
+    if not isinstance(results, list):
+        raise ValueError("Evaluation results must be a JSON list or an object containing a \"results\" list")
     scenarios = json.loads(SCENARIOS.read_text(encoding="utf-8"))
     metrics = evaluate(results, scenarios)
     print(json.dumps(metrics, indent=2))
