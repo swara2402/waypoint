@@ -130,6 +130,22 @@ jobs:
       - name: Detect high-confidence dead code
         run: vulture . --min-confidence 100 --exclude .git,.venv,venv,node_modules,dist,build
 
+  evaluation-benchmark:
+    name: RCA benchmark and evaluation metrics
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate benchmark coverage
+        run: python evals/validate_benchmark.py
+      - name: Evaluate committed fixture
+        run: python evals/evaluate.py evals/sample-results.json
+
   production-image:
     name: Production container smoke
     runs-on: ubuntu-latest
