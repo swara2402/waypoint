@@ -18,15 +18,15 @@ services:
         value: INFO
       - key: API_KEY
         generateValue: true
-      - key: PRISM_JWT_SECRET
+      - key: WAYPOINT_JWT_SECRET
         generateValue: true
-      - key: PRISM_SESSION_HOURS
+      - key: WAYPOINT_SESSION_HOURS
         value: "8"
-      - key: PRISM_BOOTSTRAP_EMAIL
+      - key: WAYPOINT_BOOTSTRAP_EMAIL
         sync: false
-      - key: PRISM_BOOTSTRAP_PASSWORD
+      - key: WAYPOINT_BOOTSTRAP_PASSWORD
         sync: false
-      - key: PRISM_BOOTSTRAP_TENANT_NAME
+      - key: WAYPOINT_BOOTSTRAP_TENANT_NAME
         value: WayPoint Workspace
       - key: CORS_ORIGINS
         sync: false
