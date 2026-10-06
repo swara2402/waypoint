@@ -389,16 +389,16 @@
 <div class="modal-backdrop hidden" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
   <div class="modal panel">
     <div class="panel-head">
-      <span class="sec-label" id="settings-title">Settings</span>
+      <div><span class="sec-label" id="settings-title">Workspace settings</span><div class="panel-caption">Advanced connection settings for technical users</div></div>
       <button class="icon-btn" id="settings-close" aria-label="Close">&times;</button>
     </div>
     <div class="form-grid" style="padding:1rem 1.25rem 1.5rem">
       <label class="field span-2">
-        <span class="field-label">API Key <span class="hint">(X-API-Key header for authenticated endpoints)</span></span>
-        <input id="settings-api-key" type="password" spellcheck="false" placeholder="Paste your API key" autocomplete="off">
+        <span class="field-label">API key <span class="hint">(advanced)</span></span>
+        <input id="settings-api-key" type="password" spellcheck="false" placeholder="Enter an API key only if your workspace requires one" autocomplete="off">
       </label>
       <div class="field span-2" style="display:flex;gap:.75rem;align-items:center">
-        <button class="btn primary" id="settings-save">Save</button>
+        <button class="btn primary" id="settings-save">Save settings</button>
         <button class="btn ghost" id="settings-clear">Clear</button>
         <span class="hint" id="settings-status"></span>
       </div>
