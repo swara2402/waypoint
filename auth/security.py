@@ -204,16 +204,16 @@ async def principal_from_request(request: Request) -> Principal:
     except jwt.PyJWTError:
         raise HTTPException(
             401,
-            "Your PRISM session has expired. Please sign in again.",
+            "Your WayPoint session has expired. Please sign in again.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     if await is_revoked(claims.get("jti", "")):
-        raise HTTPException(401, "Your PRISM session has been revoked. Please sign in again.")
+        raise HTTPException(401, "Your WayPoint session has been revoked. Please sign in again.")
     user_id = claims.get("sub")
     tenant_id = claims.get("tenant_id")
     role = claims.get("role")
     if not user_id or not tenant_id or role not in ROLE_ORDER:
-        raise HTTPException(401, "Invalid PRISM session")
+        raise HTTPException(401, "Invalid WayPoint session")
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             select(User, Tenant)
@@ -283,7 +283,7 @@ async def bootstrap_owner() -> None:
             # A workspace exists but has no owner. Refuse to silently leave it
             # owner-less: an operator must either grant an owner or reset state.
             raise SystemExit(
-                "PRISM_BOOTSTRAP_EMAIL/PASSWORD are still set but an owner already exists. "
+                "WAYPOINT_BOOTSTRAP_EMAIL/PASSWORD are still set but an owner already exists. "
                 "Clear the bootstrap variables after first run."
             )
         tenant = Tenant(name=settings.bootstrap_tenant_name)
