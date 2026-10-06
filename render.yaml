@@ -38,6 +38,11 @@ services:
         fromDatabase:
           name: waypoint-db
           property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: waypoint-redis
+          property: connectionString
       - key: ENABLE_NEO4J
         value: "false"
       - key: ENABLE_OLLAMA
@@ -54,10 +59,15 @@ services:
         value: "2"
       - key: JOB_WORKER_ENABLED
         value: "true"
-      # Safety net for fresh databases if the platform skips a pre-deploy hook.
-      # Alembic remains the only production schema authority.
+      # Render pre-deploy is the single production migration authority.
       - key: RUN_MIGRATIONS_ON_STARTUP
-        value: "true"
+        value: "false"
+
+  - type: keyvalue
+    name: waypoint-redis
+    plan: starter
+    region: singapore
+    maxmemoryPolicy: allkeys-lru
 
 databases:
   - name: waypoint-db
