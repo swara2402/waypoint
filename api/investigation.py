@@ -46,7 +46,7 @@ from causal_graph.engine import CausalGraphBuilder
 from confidence.engine import propagate
 from consensus.engine import reach_consensus
 from config.logging import get_logger
-from config.settings import settings
+from config.settings import settings, WAYPOINT_VERSION
 from database.repositories import (
     create_incident,
     get_incident,
@@ -148,7 +148,7 @@ _rate_limiter = build_rate_limiter(
 )
 
 # Reproducibility metadata for this WayPoint build.
-_PRISM_VERSION = "2.0.0"
+_PRISM_VERSION = WAYPOINT_VERSION
 
 # Every finding type that means "this agent did not produce a usable signal".
 # Previously only ``error`` was treated as a failure, so a timed-out agent
