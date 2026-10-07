@@ -383,39 +383,45 @@ async def onboarding_status(
     tenant: str = Depends(require_tenant),
 ) -> dict[str, Any]:
     from api.service import _get_config
+    from sqlalchemy import func
+
     cfg = await _get_config(tenant)
     async with AsyncSessionLocal() as session:
         connectors = (
-            await session.execute(select(CustomerConnector).where(CustomerConnector.tenant_id == tenant))
+            await session.execute(
+                select(CustomerConnector)
+                .where(CustomerConnector.tenant_id == tenant)
+            )
         ).scalars().all()
         incident_count = await session.scalar(
-            select(__import__("sqlalchemy").func.count(Incident.id)).where(Incident.tenant_id == tenant)
+            select(func.count(Incident.id)).where(Incident.tenant_id == tenant)
         )
+        analyzed_count = await session.scalar(
+            select(func.count(Incident.id)).where(
+                Incident.tenant_id == tenant,
+                Incident.status.in_(["analyzed", "resolved"]),
+            )
+        )
+        explained_count = await session.scalar(
+            select(func.count(RootCause.id)).where(RootCause.tenant_id == tenant)
+        )
+        resolution_rows = (
+            await session.execute(
+                select(Resolution).where(Resolution.tenant_id == tenant)
+            )
+        ).scalars().all()
+        learned_count = await session.scalar(
+            select(func.count(LessonLearned.id)).where(LessonLearned.tenant_id == tenant)
+        )
+
     mapping_ready = bool(cfg.schema_mapping)
     mapping_confirmed = bool(cfg.schema_mapping_confirmed_at)
     connector_ready = any(c.enabled for c in connectors)
-    analyzed_count = await session.scalar(
-        select(__import__("sqlalchemy").func.count(Incident.id)).where(
-            Incident.tenant_id == tenant,
-            Incident.status.in_(["analyzed", "resolved"]),
-        )
-    )
-    explained_count = await session.scalar(
-        select(__import__("sqlalchemy").func.count(RootCause.id)).where(RootCause.tenant_id == tenant)
-    )
-    resolution_rows = (
-        await session.execute(
-            select(Resolution).where(Resolution.tenant_id == tenant)
-        )
-    ).scalars().all()
     confirmed_count = sum(
         1
         for resolution in resolution_rows
         if isinstance(resolution.metadata_, dict)
         and str(resolution.metadata_.get("confirmed_root_cause") or "").strip()
-    )
-    learned_count = await session.scalar(
-        select(__import__("sqlalchemy").func.count(LessonLearned.id)).where(LessonLearned.tenant_id == tenant)
     )
     return {
         "stages": [
