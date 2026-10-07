@@ -225,7 +225,7 @@ async def ui_bundle() -> Response:
 
 @app.get("/api/info", tags=["meta"])
 async def service_info(_api_key: str = Depends(require_api_key)) -> dict:
-    return {"name": "WayPoint — Incident Intelligence", "version": "2.0.0", "docs": "/docs" if not settings.is_production else None, "auth": "WayPoint session cookie or tenant-bound service account", "epistemic_model": ["observed", "evidence", "inference", "confirmed"]}
+    return {"name": "WayPoint — Incident Intelligence", "version": WAYPOINT_VERSION, "docs": "/docs" if not settings.is_production else None, "auth": "WayPoint session cookie or tenant-bound service account", "epistemic_model": ["observed", "evidence", "inference", "confirmed"]}
 
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
