@@ -1282,7 +1282,11 @@ async def investigate_stream(
             )
             yield f"event: error\\ndata: {json.dumps({'error': 'Investigation failed', 'request_id': request_id})}\\n\\n"
         finally:
-            _investigation_semaphore.release()
+            slot_state = getattr(request.state, "investigation_slot", None)
+            if slot_state and _distributed_investigation_limiter is not None:
+                await _distributed_investigation_limiter.release(*slot_state)
+            else:
+                _investigation_semaphore.release()
 
 
     return StreamingResponse(
