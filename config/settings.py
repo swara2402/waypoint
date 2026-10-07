@@ -272,7 +272,7 @@ class Settings(BaseSettings):
             elif self._is_weak_secret(password):
                 errors.append(f"{name} contains a weak/default password")
 
-        if self._is_weak_secret(self.neo4j_password):
+        if self.enable_neo4j and self._is_weak_secret(self.neo4j_password):
             errors.append("NEO4J_PASSWORD is weak/default")
         if not self.cors_origins_list:
             errors.append("CORS_ORIGINS must be set to explicit frontend origin(s) in production")
